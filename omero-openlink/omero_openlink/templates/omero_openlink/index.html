@@ -1,0 +1,41 @@
+{% extends "webgateway/core_html.html" %}
+{% block title %}OpenLink{% endblock %}
+
+{% block link %}
+{% endblock %}
+
+{% block body %}
+	{% if slots %}
+		<div class="right_tab_inner">
+			{% for s in slots %}
+				<h1 ><a href="{{s.url}}">{{s.area}}</a><small style="font-size:x-small;margin-left:1.5em;">[created: {{s.date}}]</small></h1>
+				<div style="margin-bottom:5px;">Size: {{s.size}}</div>
+				<div>CLI Batch Download Command:</div>
+				<div><input type="text" value='{{s.cmd}}' style="font-size: inherit;width: 80%;" id="{{s.hashname}}" readonly>
+					<button onclick="copyContent('{{s.hashname}}')">Copy</button>
+				</div>
+				<form action="{% url 'openlink-delete' %}" method="POST">
+					{% csrf_token %}
+					<input type="hidden" name="hashname_id" value="{{s.hashname}}"/>
+					<button type="submit">Delete this area</button>
+				</form>
+				<script>
+					function copyContent(id){
+						var content = document.getElementById(id);
+						content.select();
+						content.setSelectionRange(0,99999);
+						document.execCommand("copy");
+					}
+				</script>
+				<hr>
+			{% endfor %}
+		</div>
+	{% else %}
+		<div class="right_tab_inner">
+			<p> There is no OpenLink area available! </p>
+			<p> To create a new OpenLink area, please execute the script: Create_OpenLink</p>
+                        <p> {{debug}}</p>
+		</div>
+	{% endif %}
+
+{% endblock %}
