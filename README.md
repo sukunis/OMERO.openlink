@@ -125,6 +125,23 @@ server {
     }
 }
 ```
+
+Place an *index.html* file with the following content in the top level directory of your OPENLINK_DIR, to protect downloads from other users:
+
+    <!DOCTYPE html>
+    <html lang="de">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Omero Openlink</title>
+    </head>
+    <body>
+
+    <a href=OMERO_URL>Please go first to the Omero-System to create Openlinks!</a>
+
+    </body>
+    </html>
+
 Reload your system and restart the OMERO server:
 
     $ omero admin restart
