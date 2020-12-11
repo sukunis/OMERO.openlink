@@ -1,4 +1,4 @@
-# OMERO.openlink  ![Icon](./images/icon.png =70x)
+# OMERO.openlink  <img src="/images/icon.png?raw=true" width="70" height="70">   
 
 An OMERO.web app and script for sharing data and prepare data for web download.
 
