@@ -6,10 +6,8 @@ This script can be used with python 3.6
 This script creates a download slot with links to the given image objects. Directory structure is orientated
 on the omero project-dataset-image structure.
 @author Susanne Kunis
-<a href="mailto:sukunis@uos.de">sukunis@uos.de</a>
+<a href="mailto:sinukesus@gmail.com">sinukesus@gmail.com"</a>
 @version 1.0
-
-this script create a download slot -> restrict to user owned data
 
 """
 import os
@@ -725,7 +723,7 @@ def run_script():
         version="1.0.0",
         authors=["Susanne Kunis", "CellNanOs"],
         institutions=["University of Osnabrueck"],
-        contact="sukunis@uos.de",
+        contact="sinukesus@gmail.com"",
     )  # noqa
 
     try:
