@@ -16,11 +16,19 @@ OMERO.openlink is composed of two components:
 A server side script that generates soft links to your data and creates a **curl** file for batch download of this data.
 You can share only your own data or the data of a non-private group , if you are the owner of this group (the owner of the data will be informed by mail).
 
+
+<img src="/images/scriptGUI.png?raw=true" height="450" >  
+
+
 NOTE:
 If you prefer another download manager, you can change the generated commands in the Python script.
 
 ***omero-openlink*** (visualization)
 An OMERO.web plugin that lists the links to generated areas of softlinks via the nginx server. Provides the corresponding curl command to start the download. With the plugin the areas can also be deleted via OMERO.web.
+
+
+<img src="/images/plugin.png?raw=true" width="100%" >  
+
 
 ## Requirements:
 - OMERO.web 5.6.0 or newer
