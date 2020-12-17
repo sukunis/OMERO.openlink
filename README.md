@@ -2,7 +2,7 @@
 
 An OMERO.web app and script for sharing data and prepare data for web download via **curl** (included in the newer Windows 10 builds).
 
-You can generate URL's for specific data for batch web download via **curl**, share data with other collaborates that are not in your group or member of your OMERO system. All operations are available in OMERO.web.
+You can generate URL's for specific data for batch web download via **curl** and to share data with other collaborates that are not in your group or member of your OMERO system. All operations are available in OMERO.web.
 
 ### Features
 - Create coded URL for html page with read only URL links to your data
