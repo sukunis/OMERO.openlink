@@ -36,10 +36,11 @@ VERSION = '0.1.0'
 
 
 setup(name="omero-openlink",
-      packages=find_packages(exclude=['ez_setup']),
+      packages=find_packages(),
       version=VERSION,
       description="A Python plugin for OMERO.web",
-      long_description=read('README.rst'),
+      long_description=read('README.md'),
+      long_description_content_type="text/markdown",
       classifiers=[
           'Development Status :: 5 - Production/Stable',
           'Environment :: Web Environment',
