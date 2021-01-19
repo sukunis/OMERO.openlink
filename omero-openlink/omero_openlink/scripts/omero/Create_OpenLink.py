@@ -72,6 +72,8 @@ CURL_PATTERN='create-dirs\n output="%s%s%s"\n continue-at -\n url="%s/%s/%s"'
 
 CMD = "curl -s %s/%s/%s | curl -K-"
 
+MAX_PATHLENGTH = 200 # max pathlength in windows:256
+
 # dict of {'<userID>':{'images':<list_of_imageIds>,'email':<mail>}} for mail notification
 NOTIFICATION_LIST={}
 
@@ -130,7 +132,11 @@ def addToCurlFile(base,hashName):
                 continue
             if not os.path.basename(file)==os.path.basename(curlFile):
                 relPath=os.path.relpath(file, base)
-                # replace whitespaces
+                relPath=relPath.replace('\\','/')
+                if len(relPath) > MAX_PATHLENGTH:
+                    print("ATTENTION: pathlength is in the critical range! This could generate download issues for %s"%relPath)
+
+            # replace whitespaces
                 entry = CURL_PATTERN %(accessAreaName,os.sep,relPath,URL,
                                        hashName.replace(" ","%20"),relPath.replace(" ","%20"))
                 tFile.write(entry)
