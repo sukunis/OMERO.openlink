@@ -729,7 +729,7 @@ def run_script():
         version="1.0.0",
         authors=["Susanne Kunis", "CellNanOs"],
         institutions=["University of Osnabrueck"],
-        contact="sinukesus@gmail.com"",
+        contact="sinukesus@gmail.com",
     )  # noqa
 
     try:
