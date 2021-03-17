@@ -87,11 +87,25 @@ def get_omero_paths(client):
     managed_repo_dir = None
     orig_repo_dir = None
     for desc in repos.descriptions:
-        if desc.name.val == "ManagedRepository":
+        if "ManagedRepository".lower() in desc.name.val.lower():
             managed_repo_dir = desc.path.val + desc.name.val
-        if desc.name.val == "OMERO":
+        if "OMERO".lower() in desc.name.val.lower():
             orig_repo_dir = desc.path.val + desc.name.val
 
+    # if the repo paths could not be identify, check custom configurations from config of omero
+    if not managed_repo_dir:
+        managed_repo_dir=client.sf.getConfigService().getConfigValue("omero.managed.dir");
+    if not orig_repo_dir:
+        orig_repo_dir=client.sf.getConfigService().getConfigValue("omero.data.dir");
+
+    # catching empty paths
+    if not managed_repo_dir:
+        print("ERROR: no specification was found for managed repository path. Please check path of type Managed under \n >>omero fs repos \n or the value of omero.managed.dir under\n >>omero config get")
+        return None,None
+
+    if not orig_repo_dir:
+        print("ERROR: no specification was found for omero repository path. Please check path of type Public under \n >>omero fs repos \n or the value of omero.data.dir under\n >>omero config get")
+        return None,None
 
     if managed_repo_dir and not managed_repo_dir.endswith('/'):
         managed_repo_dir = managed_repo_dir + '/'
