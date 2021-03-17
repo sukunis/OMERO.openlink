@@ -1,26 +1,34 @@
 # OMERO.openlink  <img src="/images/icon.png?raw=true" width="70" height="70">   
 
-An OMERO.web app and script for sharing data and prepare data for web download.
+An OMERO.web app and script for sharing data and prepare data for web download via **curl** (included in the newer Windows 10 builds).
 
-You can generate URL's for specific data for batch web download, share data with other collaborates that are not in your group or member of our OMERO system or for third party use. All operations are available in OMERO.web.
+You can generate URL's for specific data for batch web download via **curl** and to share data with other collaborates that are not in your group or member of your OMERO system. All operations are available in OMERO.web.
 
 ### Features
 - Create coded URL for html page with read only URL links to your data
 - You can add data to an existing page
-- You can delete whole page
+- You can delete whole pages
 - Fast batch download for all data of one openlink area with **curl** (skip already downloaded files, compressed for transfer)
 
 OMERO.openlink is composed of two components:
 
 ***Create_OpenLink.py*** (generation)
 A server side script that generates soft links to your data and creates a **curl** file for batch download of this data.
-You can share only your own data or the data of a non-private group , if you are the owner of this group (the owner of the data will be informed by mail).
+You can share only your own data or the data of a non-private group if you are the owner of this group (the owner of the data will be informed by mail).
+
+
+<img src="/images/scriptGUI.png?raw=true" height="450" >  
+
 
 NOTE:
 If you prefer another download manager, you can change the generated commands in the Python script.
 
 ***omero-openlink*** (visualization)
-An OMERO.web plugin that lists the links to generated areas of softlinks via the nginx server. Provides the corresponding curl command to start the download. With the plugin the areas can also be deleted via OMERO.web.
+An OMERO.web plugin that lists the links to generated areas of softlinks via the nginx server. Provides the corresponding **curl** command to start the download in a shell. With the plugin the areas can also be deleted via OMERO.web.
+
+
+<img src="/images/plugin.png?raw=true" width="100%" >  
+
 
 ## Requirements:
 - OMERO.web 5.6.0 or newer
@@ -126,7 +134,7 @@ server {
 }
 ```
 
-Place an *index.html* file with the following content in the top level directory of your OPENLINK_DIR, to protect downloads from other users:
+Place an *index.html* file with the following content in the top level directory of your OPENLINK_DIR to protect downloads from other users:
 
     <!DOCTYPE html>
     <html lang="de">
