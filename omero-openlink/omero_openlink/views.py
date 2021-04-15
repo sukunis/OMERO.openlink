@@ -29,7 +29,7 @@ except ImportError:
             line plots and split channel will fail!')
 
 OPENLINK_DIR= openlink_settings.OPENLINK_DIR[1:-1]
-SERVER_NAME = 'http://%s/openlink/'%openlink_settings.SERVER_NAME[1:-1]
+SERVER_NAME = 'http://%s'%openlink_settings.SERVER_NAME[1:-1]
 
 
 CMD_CURL="curl -s %s/%s/%s | curl -K-"
