@@ -12,5 +12,8 @@ urlpatterns = [
 
     url(r'^deleteOpenLink/?',views.delete, name='openlink-delete'),
 
+    #show debugoutput: replace in url "webclient" by "omero_openlink/debugoutput"
+    #url(r'^debugoutput/$',views.debugoutput,name='debugoutput'),
+
 
 ]

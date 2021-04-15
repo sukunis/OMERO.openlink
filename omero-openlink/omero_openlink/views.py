@@ -39,6 +39,38 @@ GET_SLOTNAME_PATTERN = '^rn_[A-Z,0-9]+_\d+_(.+)'
 SKIP_FILES=[CONTENT_FILE,CURL_FILE]
 
 
+@login_required()
+def debugoutput(request,conn=None,**kwargs):
+    data=[]
+    data.append({'OpenLink Dir':OPENLINK_DIR})
+    data.append({'Server Name':SERVER_NAME})
+    # test openlink directory access
+    if os.path.exists(OPENLINK_DIR):
+        if (oct(os.stat(OPENLINK_DIR).st_mode)[-3:]=="775"):
+            data.append({'NOT all permissions on openlink dir'})
+    else:
+        data.append({'ERROR: can not access OPENLINK_DIR'})
+
+    # list openlink_dir content
+    #dircontent = os.listdir(OPENLINK_DIR)
+    #data.append({",".join([str(elem) for elem in dircontent])})
+    try:
+        user = conn.getUser()
+        slotParentDir=getAreasOfUser(str(user.getId()))
+        if slotParentDir is not None:
+            data.append({"Current User ID":str(user.getId())})
+            data.append({"Current User Name":user.getName()})
+
+            for p in slotParentDir:
+                areaName =  parseAccessAreaNames(os.path.basename(p))
+                data.append({"SLOT user path":p})
+                data.append({"SLOT user name":areaName})
+    except Exception as e:
+        exc_type, exc_obj, exc_tb = sys.exc_info()
+        append.append({'ERROR': 'while reading slot dir: %s\n %s %s'%(str(e),exc_type, exc_tb.tb_lineno)})
+
+    return JsonResponse(data,safe=False)
+
 
 def parseAccessAreaNames(p):
     try:
