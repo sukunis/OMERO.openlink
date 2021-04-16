@@ -44,6 +44,9 @@ You have to define a directory on your OMERO.server (here */path/to/open_link_di
 Variable **SERVER_NAME**:
 The url alias of your OMERO.web server without leading http://.
 
+Variable **NGINX_LOCATION**:
+The location defined in the nginx configuration. Leave empty if you don't use the nginx feature.
+
 
 ### Installation *Create_OpenLink.py*:
 
