@@ -42,6 +42,9 @@ OPENLINK_DIR= "/path/to/open_link_dir"
 # name of nginx website
 SERVER_NAME = "omero-data.myfacility.com"
 
+# name of nginx location
+NGINX_LOCATION= '/openlink'
+
 # email originator
 ADMIN_EMAIL = "myemail@yourfacilitydomain"
 
@@ -61,8 +64,7 @@ PARAM_ATTACH="Add attachments"
 # email server IP adress
 SMTP_IP = '127.0.0.1'
 
-NGINX_LOCATION= 'openlink'
-URL = "http://%s/%s"%(SERVER_NAME,NGINX_LOCATION)
+URL = "http://%s%s"%(SERVER_NAME,NGINX_LOCATION)
 
 OPENLINK_PATTERN='rn_*_'
 GET_SLOTNAME_PATTERN = '^rn_[A-Z,0-9]+_\d+_(.+)'
