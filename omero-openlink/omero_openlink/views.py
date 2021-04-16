@@ -46,8 +46,7 @@ def debugoutput(request,conn=None,**kwargs):
     data.append({'Server Name':SERVER_NAME})
     # test openlink directory access
     if os.path.exists(OPENLINK_DIR):
-        if (oct(os.stat(OPENLINK_DIR).st_mode)[-3:]=="775"):
-            data.append({'NOT all permissions on openlink dir'})
+        data.append({"Permission mask OPENLINK_DIR (in octal)":oct(os.stat(OPENLINK_DIR).st_mode)[-3:]})
     else:
         data.append({'ERROR: can not access OPENLINK_DIR'})
 
