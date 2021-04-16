@@ -50,7 +50,7 @@ The location defined in the nginx configuration. Leave empty if you don't use th
 
 ### Installation *Create_OpenLink.py*:
 
-Download *Create_OpenLink.py* and open it to add your specifications under the configuration section:
+Download *Create_OpenLink.py* located in *omero-openlink/omero_openlink/scripts/omero/* and open it to add your specifications under the configuration section:
 
 ```
 #-------------------------------------------------
