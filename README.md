@@ -60,6 +60,9 @@ OPENLINK_DIR= "/path/to/open_link_dir"
 # name of nginx website
 SERVER_NAME = "omero-data.myfacility.com"
 
+# name of nginx location
+NGINX_LOCATION= '/openlink'
+
 # email originator
 ADMIN_EMAIL = "myemail@yourfacilitydomain"
 
@@ -90,7 +93,12 @@ Display the OpenLink pane in the right pane
 Configuration settings (with *omero config set*):
 
 - ``omero.web.openlink.dir`` OPENLINK_DIR
-- ``omero.web.openlink.servername`` SERVER_NAME
+- ``omero.web.openlink.servername`` SERVER_NAME/NGINX_LOCATION
+
+Examples for configuration settings (values see also script configuration section):
+
+    $omero config set omero.web.openlink.dir '"/path/to/open_link_dir"'
+    $omero config set omero.web.openlink.servername '"omero-data.myfacility.com/openlink"'
 
 
 #### Nginx configuration:
@@ -133,6 +141,8 @@ server {
     }
 }
 ```
+
+The name of the location, in this example */openlink*, is the value you must use to specify the value for NGINX_LOCATION.
 
 Place an *index.html* file with the following content in the top level directory of your OPENLINK_DIR to protect downloads from other users:
 
