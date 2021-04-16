@@ -44,6 +44,8 @@ SERVER_NAME = "omero-data.myfacility.com"
 
 # name of nginx location
 NGINX_LOCATION= '/openlink'
+# leave empty if you don't use nginx
+# NGINX_LOCATION =''
 
 # email originator
 ADMIN_EMAIL = "myemail@yourfacilitydomain"
