@@ -50,7 +50,7 @@ The location defined in the nginx configuration. Leave empty if you don't use th
 
 ### Installation *Create_OpenLink.py*:
 
-Download *Create_OpenLink.py* and open it to add your specifications under the configuration section:
+Download *Create_OpenLink.py* located in *omero-openlink/omero_openlink/scripts/omero/* and open it to add your specifications under the configuration section:
 
 ```
 #-------------------------------------------------
@@ -166,6 +166,27 @@ Place an *index.html* file with the following content in the top level directory
 Reload your system and restart the OMERO server:
 
     $ omero admin restart
+
+## Validation
+#### Validation of configuration in *Create_OpenLink.py*:
+In order to check whether the values for x have been entered correctly, please test the link that was entered in the log file under URL and also check the entered url's in the batch_download.curl that is available there.
+
+#### Validation of configuration *omero-openlink*:
+There is a debug output available for the plugin. Go to subdirectory omero_openlink of the installation directory of *omero-openlink*
+
+    $ cd omero-openlink/omero_openlink
+    
+open the *urls.py* and delete the leading # in the line
+
+`` #url(r'^debugoutput/$',views.debugoutput,name='debugoutput'),``
+    
+ After restarting the web server, find the debug output for your Openlink plugin by replacing webclient by oemro_openlink/debugoutput in the URL of the omero.web
+ (for example: https://server.openmicroscopy.org/webclient -> https://server.openmicroscopy.org/omero_openlink/debugoutput). This output shows you:
+ 
+ * what is defined under OPENLINK_DIR, SERVER_NAME 
+ * check if OPENLINK_DIR is accessible
+ * check permission of OPENLINK_DIR for omero-web user
+ * overview of OpenLink Areas of currently logged-in user
 
 ## License
 

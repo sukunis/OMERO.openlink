@@ -1,0 +1,4 @@
+# exclude .git* from generated tarball
+.git* export-ignore
+# exclude image dir from generated tarball
+images  export-ignore
