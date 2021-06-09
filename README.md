@@ -10,6 +10,8 @@ You can generate URL's for specific data for batch web download via **curl** and
 - You can delete whole pages
 - Fast batch download for all data of one openlink area with **curl** (skip already downloaded files, compressed for transfer)
 
+<img src="/images/OpenLink.png?raw=true" height="450" > 
+
 OMERO.openlink is composed of two components:
 
 ***Create_OpenLink.py*** (generation)
