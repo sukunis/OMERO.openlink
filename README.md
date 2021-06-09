@@ -193,6 +193,7 @@ open the *urls.py* and delete the leading # in the line
 ## License
 
 OMERO.openlink is released under the AGPL.
+Any additional material in this repository (images, presentations, etc.) is available for use with attribution under the Creative Commons Attribution 4.0 International (CC BY 4.0) license.
 
 
 
