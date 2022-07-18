@@ -497,6 +497,39 @@ def addProjects(conn,slot,projects,user,addAttachments,allowedToShare):
                 addAttachment(project,linkDir)
 
             addDatasets(conn,slot,project.listChildren(),user,addAttachments,allowedToShare,linkDir)
+            
+def addScreens(conn, slot, screens, user, addAttachments, allowedToShare):
+    for screen in screens:
+        linkDir = createObjectDir("S", slot, screen, screen.getName())
+        if linkDir is not None:
+            if addAttachments:
+                addAttachment(screen, linkDir)
+            addPlates(conn, slot, screen.listChildren(), user, addAttachments, allowedToShare, linkDir)
+
+def addPlates(conn, slot, plates, user, addAttachments, allowedToShare,targetDir=None):
+    for plate in plates:
+        # check if parent screen dir still exists
+        if not targetDir:
+            projectObj = plate.getParent()
+            if projectObj is not None:
+                linkDir = createObjectDir("S", slot, projectObj, projectObj.getName())
+            else:
+                linkDir = slot
+        else:
+            linkDir = targetDir
+
+        if linkDir is not None:
+            linkDir = createObjectDir("PL", linkDir, plate, plate.getName())
+
+            if addAttachments:
+                addAttachment(plate, linkDir)
+            # generate imageList from the wellsamples
+            imageList = []
+            for well in plate.listChildren():
+                for wellsample in well.listChildren():
+                    imageList.append(wellsample.getImage())
+
+            addImages(conn, slot, imageList, user, addAttachments, allowedToShare, linkDir)
 
 def getRandomString(n):
     # generating random strings
@@ -626,6 +659,10 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
         addProjects(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
     elif destType =='Dataset':
         addDatasets(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
+    elif destType == 'Screen':
+        addScreens(conn, accessAreaPath, destObjs, conn.getUser(), addAttachments, allowedToShare)
+    elif destType == 'Plate':
+        addPlates(conn, accessAreaPath, destObjs, conn.getUser(), addAttachments, allowedToShare)
     elif destType == 'Image':
         addImages(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
 
@@ -716,7 +753,7 @@ def run_script():
     availableSlotsNames,paths = getAvailableSlots(conn)
     client.closeSession()
 
-    dataTypes = [rstring('Project'),rstring('Dataset'),rstring('Image')]
+    dataTypes = [rstring('Project'), rstring('Dataset'), rstring('Image'), rstring('Screen'), rstring('Plate')]
 
     client = scripts.client(
         'Create_OpenLink.py',
