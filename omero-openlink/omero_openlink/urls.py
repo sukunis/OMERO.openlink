@@ -13,7 +13,7 @@ urlpatterns = [
     re_path(r'^deleteOpenLink/?',views.delete, name='openlink-delete'),
 
     #show debugoutput: replace in url "webclient" by "omero_openlink/debugoutput"
-    #url(r'^debugoutput/$',views.debugoutput,name='debugoutput'),
+    #re_path(r'^debugoutput/$',views.debugoutput,name='debugoutput'),
 
 
 ]
