@@ -32,7 +32,7 @@ def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
 
-VERSION = '0.1.4'
+VERSION = '1.2.4'
 
 
 setup(name="omero-openlink",
