@@ -533,22 +533,24 @@ def addToNotifyList(user, image_ID):
     if 'email' in dic and dic['email']:
         userEmail = dic['email']
 
+    image_url = "http://omero.cellnanos.uni-osnabrueck.de/webclient/?show=image-"+str(image_ID)
+
     # Validate with a regular expression. Not perfect but it will do
     match= re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$",
                     userEmail)
     if match:
         global NOTIFICATION_LIST
         if len(NOTIFICATION_LIST)==0:
-            NOTIFICATION_LIST={userID:{'images':[image_ID],'email':userEmail}}
+            NOTIFICATION_LIST={userID:{'images':[image_url],'email':userEmail}}
         else:
             # user available?
             if userID in NOTIFICATION_LIST and NOTIFICATION_LIST[userID]:
                 if NOTIFICATION_LIST[userID]['images']:
-                    NOTIFICATION_LIST[userID]['images'].append(image_ID)
+                    NOTIFICATION_LIST[userID]['images'].append(image_url)
                 else:
-                    NOTIFICATION_LIST[userID]={'images':[image_ID],'email':userEmail}
+                    NOTIFICATION_LIST[userID]={'images':[image_url],'email':userEmail}
             else:
-                NOTIFICATION_LIST.update({userID:{'images':[image_ID],'email':userEmail}})
+                NOTIFICATION_LIST.update({userID:{'images':[image_url],'email':userEmail}})
 
 
 def get_owner_of_data(conn, image):
