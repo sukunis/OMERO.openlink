@@ -171,7 +171,8 @@ def addToCurlFile(base,hashName):
                 relPath=os.path.relpath(file, base)
                 relPath=relPath.replace('\\','/')
                 if len(relPath) > MAX_PATHLENGTH:
-                    print("ATTENTION: pathlength is in the critical range! This could generate download issues for %s"%relPath)
+                    print("WARNING: pathlength is in the critical range! This could generate download issues for %s"%relPath)
+
 
             # replace whitespaces
                 entry = CURL_PATTERN %(accessAreaName,os.sep,relPath,URL,
@@ -217,7 +218,7 @@ def loadDictContent(path):
         CONTENT_DICT = json.load(f)
         f.close()
     else:
-        print("OpenLink content file doesn't exist")
+        print("INFO: create new content dict")
         CONTENT_DICT={}
 
 
@@ -265,7 +266,8 @@ def createObjectDir(type,ppath,object,name):
             addToDictContent(path,object.getId())
             return path
         except:
-            print("ERROR: Cannot create directory for %s: %s in %s (possible problems:length of name, usage of /\:*?''<>|)"%(type,name,ppath))
+            print("ERROR: Cannot create directory for ID:%s: %s in %s (possible problems:length of name, or name contains special char)"%(object.getId(),name,ppath))
+
             return None
     else:
         # check if existing object is the same
@@ -296,6 +298,9 @@ def getPath(image, slot):
     if linkDir is not None:
         linkDir = createObjectDir("D",linkDir,datasetObj,datasetObj.getName())
 
+    if linkDir is None:
+        print("ERROR: can't create Project directory for ",image.getName())
+
     return linkDir
 
 
@@ -325,7 +330,7 @@ def isAllowedToShareData(conn,userID):
 
     '''
     group = conn.getGroupFromContext()
-    print("# Current group: %s"%group.getName())
+    print("# INFO:  Current group: %s"%group.getName())
     # if current group is a private group -> return false
     group_perms = group.getDetails().getPermissions()
     perm_string = str(group_perms)
@@ -334,9 +339,10 @@ def isAllowedToShareData(conn,userID):
         'rwr---': 'READ-ONLY',
         'rwra--': 'READ-ANNOTATE',
         'rwrw--': 'READ-WRITE'}
-    print ("# Group Permission: %s (%s)" % (permission_names[perm_string], perm_string))
+    print ("# INFO: Group Permission: %s (%s)" % (permission_names[perm_string], perm_string))
     if permission_names[perm_string]== permission_names['rw----']:
-        print("\nThis is a private group -> you can only create an OpenLink of data owned by yourself!\n")
+        print("\n# WARNING: This is a private group -> you can only create an OpenLink of data owned by yourself!\n")
+
         return False
 
     # check if given user is also an owner of this group
@@ -399,14 +405,14 @@ def checkLinks(src,targetDir,name,linkNames, linkTarget, id):
         else:#rename
             fName,extension = os.path.splitext(name)
             name = "%s_%s%s"%(fName,id,extension)
-            print("# rename : %s [new: %s]"%(fName,name))
+            print("# INFO: rename : %s [new: %s]"%(fName,name))
             linkNames,linkTarget=checkLinks(src,targetDir,name,linkNames,linkTarget,id)
     else: #src still exists
         if dest not in linkNames:#ignore
-            print("# ignore %s (src exists, dest not)"%name)
+            #print("# INFO: ignore %s (src exists, dest not)"%name)
             pass
         else: #ignore
-            print("# ignore %s (src exists, dest exists)"%name)
+            #print("# INFO: ignore %s (src exists, dest exists)"%name)
             pass
 
     return linkNames,linkTarget
@@ -425,7 +431,7 @@ def createSymlinks(linkNames, linkTarget):
             try:
                 os.symlink(src, dest)
             except FileExistsError:
-                print("# skip:: Link still exists: ",src)
+                print("# INFO: skip:: Link still exists: ",src)
 
 def addAttachment(obj,tdir):
     """
@@ -438,12 +444,12 @@ def addAttachment(obj,tdir):
     if tdir is not None:
         for ann in obj.listAnnotations():
             if isinstance(ann,omero.gateway.FileAnnotationWrapper):
-                print("# Annotation File ID:", ann.getFile().getId(),ann.getFile().getName())
+                print("# INFO: Annotation File ID:", ann.getFile().getId(),ann.getFile().getName())
                 #TODO: link - if file still exists - skip
                 carg="find %s -name %s"%(ORIGINAL_REP,ann.getFile().getId())
                 paths = [line[0:] for line in subprocess.check_output(carg, shell=True).splitlines()]
                 if len(paths)>1:
-                    print("# ATTENTION: file annotation target is not unique: %s --> use first match"%("\n".join(paths)))
+                    print("# WARNING: file annotation target is not unique: %s --> use first match"%("\n".join(paths)))
 
                 linkNames=[]
                 linkNames.append(os.path.join(tdir,ann.getFile().getName()))
@@ -522,23 +528,27 @@ def addImages(conn,slot,images,user,addAttachments, allowedToShare,targetDir=Non
                 if image.countFilesetFiles()>1:
                     name , extension = os.path.splitext(image.getName())
                     src = os.path.join(MANAGED_REP,src_filesetPath)
+
                     linkNames,linkTarget=checkLinks(src,targetDir,name,linkNames,linkTarget,image.id)
 
                 else:
                     src = os.path.join(os.path.join(MANAGED_REP,src_filesetPath),src_fName)
+
                     linkNames,linkTarget=checkLinks(src,targetDir,src_fName,linkNames,linkTarget,image.id)
 
                 # if data owned by others - owner of this data should be notify
                 if not user_is_owner and allowedToShare:
                     addToNotifyList(get_owner_of_data(conn,image),image.id)
             else:
-                print("# ATTENTION: No raw file or fileset available")
+                print("# WARNING: No raw file or fileset available")
+
 
             # add available attachments if required
             if addAttachments:
                 addAttachment(image,targetDir)
         else:
-            print("# ATTENTION: You are not allowed to share image: %s"%image.getId())
+            print("# WARNING: You are not allowed to share image: %s"%image.getId())
+
 
 
     # create links from proof images
@@ -673,7 +683,7 @@ def email_results(conn, imageIDs,email,smtpObj):
     msg['Subject'] = '[OMERO Share] your data was shared'
     msg.attach(MIMEText("""Your data was shared by %s.
 
-    List of shared image ID's:
+    List of shared data:
 
     %s
 
@@ -694,10 +704,10 @@ def notifyMembers(conn):
         smtpObj = smtplib.SMTP(SMTP_IP)
 
         for key, value in NOTIFICATION_LIST.items():
-            print("# Send Notification to %s"%value['email'])
+            print("# INFO: Send Notification to %s"%value['email'])
             email_results(conn,value['images'],value['email'],smtpObj)
         smtpObj.quit()
-        print('# Notification via mail took %.2f seconds' % (time.time()-start))
+        print('# INFO: Notification via mail took %.2f seconds' % (time.time()-start))
 
 
 def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
