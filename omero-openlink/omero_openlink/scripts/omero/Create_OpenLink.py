@@ -270,7 +270,7 @@ def addToDictContent(path,id):
     global CONTENT_DICT
     CONTENT_DICT.update({path:id})
 
-def createObjectDir(type,ppath,object,name):
+def createObjectDir(ppath,object,name):
     """
       Create new directory of <name> in <ppath> and add this path and the object id to global dict CONTENT_DICT .
       Normally <name> is the name of the given object.
@@ -309,7 +309,7 @@ def createObjectDir(type,ppath,object,name):
             if len(existing_paths) == 0:
                 # create alternativ name (append id)
                 alter_dir_name = "%s_%s"%(object.getName(),object.getId())
-                return createObjectDir(type,ppath,object,alter_dir_name)
+                return createObjectDir(ppath,object,alter_dir_name)
             else:
                 return existing_paths[0]
     return path
@@ -325,10 +325,10 @@ def getPath(image, slot):
     linkDir=slot
 
     if projectObj is not None:
-        linkDir = createObjectDir("P",linkDir,projectObj,projectObj.getName())
+        linkDir = createObjectDir(linkDir,projectObj,projectObj.getName())
 
     if linkDir is not None:
-        linkDir = createObjectDir("D",linkDir,datasetObj,datasetObj.getName())
+        linkDir = createObjectDir(linkDir,datasetObj,datasetObj.getName())
 
     if linkDir is None:
         print("ERROR: can't create Project directory for ",image.getName())
@@ -639,14 +639,14 @@ def addDatasets(conn,slot, datasets,user,addAttachments,allowedToShare,targetDir
         if not targetDir:
             projectObj=dataset.getParent()
             if projectObj is not None:
-                linkDir = createObjectDir("P",slot,projectObj,projectObj.getName())
+                linkDir = createObjectDir(slot,projectObj,projectObj.getName())
             else:
                 linkDir = slot
         else:
             linkDir = targetDir
 
         if linkDir is not None:
-            linkDir=createObjectDir("D",linkDir,dataset,dataset.getName())
+            linkDir=createObjectDir(linkDir,dataset,dataset.getName())
 
             if addAttachments:
                 addAttachment(dataset,linkDir)
@@ -670,12 +670,70 @@ def addProjects(conn,slot,projects,user,addAttachments,allowedToShare):
         allowedToShare (bool):
     """
     for project in projects:
-        linkDir=createObjectDir("P",slot,project,project.getName())
+        linkDir=createObjectDir(slot,project,project.getName())
         if linkDir is not None:
             if addAttachments:
                 addAttachment(project,linkDir)
 
             addDatasets(conn,slot,project.listChildren(),user,addAttachments,allowedToShare,linkDir)
+
+
+def addPlates(conn,slot, plates,user,addAttachments,allowedToShare,targetDir=None):
+    """
+    TODO: doubled with addPath?
+    Check if parent screen dir exists (and create one if not) and afterwards calls createObjectDir for given plates objects
+    and add images
+    Args:
+      conn: BlitzGateway connection
+      slot: path to access area
+      plates: List of OMERO plates objects
+      user: user object
+      addAttachments (bool):
+      allowedToShare (bool):
+      targetDir: parent project dir if exists
+      """
+    for plate in plates:
+        # check if parent screen dir still exists
+        if not targetDir:
+            screenObj=plate.getParent()
+            if screenObj is not None:
+                linkDir = createObjectDir(slot,screenObj,screenObj.getName())
+            else:
+                linkDir = slot
+        else:
+            linkDir = targetDir
+
+        if linkDir is not None:
+            linkDir=createObjectDir(linkDir,plate,plate.getName())
+
+            if addAttachments:
+                addAttachment(plate,linkDir)
+            imageList=[]
+            for well in plate.listChildren():
+                index = well.countWellSample()
+
+                for index in range(0,index):
+                    imageList.append(well.getImage(index))
+            addImages(conn,slot,imageList,user,addAttachments,allowedToShare,linkDir)
+
+def addScreens(conn, slot, screens,user,addAttachments,allowedToShare):
+    """
+    Calls createObjectDir for given screen objects and add child plates
+     Args:
+        conn: BlitzGateway connection
+        slot: path to access area
+        screens: List of OMERO screen objects
+        user: user object
+        addAttachments (bool):
+        allowedToShare (bool):
+    """
+    for screen in screens:
+        linkDir=createObjectDir(slot,screen,screen.getName())
+        if linkDir is not None:
+            if addAttachments:
+                addAttachment(screen,linkDir)
+
+            addPlates(conn,slot,screen.listChildren(),user,addAttachments,allowedToShare,linkDir)
 
 def getRandomString(n):
     """generating random strings
@@ -826,6 +884,10 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
         addProjects(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
     elif destType =='Dataset':
         addDatasets(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
+    elif destType =='Screen':
+        addScreens(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
+    elif destType =='Plate':
+        addPlates(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
     elif destType == 'Image':
         addImages(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
 
@@ -842,7 +904,7 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
 
 
     notifyMembers(conn)
-    return "Create OpenLink:  %s. After reload you can find URL and batch download command listed under OpenLink in the right hand pane"%slotName
+    return url
 
 
 def prepareOpenLinkArea(availableSlots, conn, params, paths):
@@ -948,7 +1010,7 @@ def run_script():
     availableSlotsNames,paths = getAvailableSlots(conn)
     client.closeSession()
 
-    dataTypes = [rstring('Project'),rstring('Dataset'),rstring('Image')]
+    dataTypes = [rstring('Screen'),rstring('Plate'),rstring('Project'),rstring('Dataset'),rstring('Image')]
 
     client = scripts.client(
         'Create_OpenLink.py',
