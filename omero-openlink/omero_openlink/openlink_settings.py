@@ -12,7 +12,8 @@ def str_not_empty(o):
 OPENLINK_SETTINGS_MAPPINGS = {
     'omero.web.openlink.dir': ['OPENLINK_DIR','' ,str_not_empty, None],
     #$ omero config set omero.web.openlink.dir '{""}'
-    'omero.web.openlink.servername':['SERVER_NAME','',str_not_empty,None]
+    'omero.web.openlink.servername':['SERVER_NAME','',str_not_empty,None],
+    'omero.web.openlink.type_http':['TYPE_HTTP','',str_not_empty,None]
 }
 
 process_custom_settings(sys.modules[__name__], 'OPENLINK_SETTINGS_MAPPINGS')

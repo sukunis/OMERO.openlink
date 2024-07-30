@@ -15,7 +15,7 @@ import datetime
 import shutil
 from operator import itemgetter
 
-from . import openlink_settings 
+from . import openlink_settings
 
 logger = logging.getLogger(__name__)
 
@@ -28,8 +28,9 @@ except ImportError:
         logger.error('No Pillow installed,\
             line plots and split channel will fail!')
 
-OPENLINK_DIR= openlink_settings.OPENLINK_DIR[1:-1]
-SERVER_NAME = 'http://%s'%openlink_settings.SERVER_NAME[1:-1]
+OPENLINK_DIR=openlink_settings.OPENLINK_DIR[1:-1]
+TYPE_HTTP = openlink_settings.TYPE_HTTP
+SERVER_NAME = '%s://%s'%(TYPE_HTTP,openlink_settings.SERVER_NAME[1:-1])
 
 
 CMD_CURL="curl -s %s/%s/%s | curl -K-"
@@ -70,7 +71,6 @@ def debugoutput(request,conn=None,**kwargs):
 
     return JsonResponse(data,safe=False)
 
-
 def parseAccessAreaNames(p):
     try:
         name = re.search(GET_SLOTNAME_PATTERN, p).group(1)
@@ -97,7 +97,7 @@ def getAreasOfUser(id):
                 try:
                     found = re.search(GET_ID_PATTERN, x).group(1)
                 except AttributeError:
-                    found = None 
+                    found = None
 
                 if found == id:
                     values.append(os.path.join(OPENLINK_DIR,x))
@@ -125,10 +125,8 @@ def get_area_size(path):
                     total += entry.stat(follow_symlinks=True).st_size
                 except OSError as error:
                     print('Error calling stat():', error)
-        
+
     return total
-
-
 
 @login_required()
 def openlink(request,conn=None, **kwargs):
@@ -159,11 +157,11 @@ def openlink(request,conn=None, **kwargs):
                     values.append(data)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
-        
+
         debug="%s...[ERROR: \n%s[%s]]..."%(debug,str(e),exc_tb.tb_lineno)
         print('ERROR: while reading openlink dir: %s\n '%(str(e)))
 
-    values=sorted(values, key=itemgetter('timestamp'),reverse=True) 
+    values=sorted(values, key=itemgetter('timestamp'),reverse=True)
     return render(request, 'omero_openlink/index.html',{'slots':values,'debug':debug})
 
 
@@ -183,7 +181,3 @@ def delete(request,conn=None,**kwargs):
                 return JsonResponse(['ERROR:while delete openlink area',str(e),exc_tb.tb_lineno],safe=False)
 
     return HttpResponseRedirect(request.META.get('HTTP_REFERER')+'#openlink_tab')
-
-
-
-
