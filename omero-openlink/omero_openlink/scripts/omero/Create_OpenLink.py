@@ -77,6 +77,13 @@ CMD = "curl -s %s/%s/%s | curl -K-"
 
 MAX_PATHLENGTH = 200 # max pathlength in windows:256
 
+
+NON_VALID_CHAR = r'[@ `!#$%^&+=*()<>?/\\|}{~:ÃƒÆ’Ã…Â¸,]'
+
+
+# define valid characters that should be used instead of a certain non valid charcter. If nothing is specified, the character will be replaced by '_'
+REPLACE_CHAR={'&':'AND','%':'Perc','#':'Num','+':'AND','^':'OR'}
+
 #flag for non valid characters in filenames
 WARNINGS = False
 ERRORS= False
@@ -193,8 +200,8 @@ def addToCurlFile(base,hashName):
                     print("WARNING: pathlength is in the critical range! This could generate download issues for %s"%relPath)
                     setWarning()
 
-            # replace whitespaces
-                entry = CURL_PATTERN %(accessAreaName,os.sep,relPath,URL,
+                # replace whitespaces
+                entry = CURL_PATTERN %(accessAreaName,os.sep,replace_special_char_in_tokens(relPath),URL,
                                        hashName.replace(" ","%20"),relPath.replace(" ","%20"))
                 tFile.write(entry)
                 tFile.write("\n")
@@ -277,7 +284,13 @@ def createObjectDir(type,ppath,object,name):
           absolute path of created dir
 
     """
+    if name is None:
+        return None
 
+    # replace non valid characters
+    name,message = replace_special_char(name)
+    if message:
+        print(message)
     path=os.path.join(ppath,name)
     if not os.path.exists(path):
         try:
@@ -374,6 +387,31 @@ def isAllowedToShareData(conn,userID):
     return False
 
 
+def replace_special_char(name):
+    if name is None:
+        return name
+    replaced_name = re.sub(NON_VALID_CHAR, '_', name)
+    message=None
+    if replaced_name!=name:
+        message = "# INFO: replaced char : [%s] -> [%s]"%(name,replaced_name)
+        setWarning()
+    return replaced_name,message
+
+def replace_special_char_in_tokens(name):
+    # split by string by "/" to separate tokens
+    tokens=name.split('/')
+    replaced_name=""
+    for i in tokens:
+        token = re.sub(NON_VALID_CHAR, '_', i)
+        #if token!=i:
+        #    print("replaced char!!!!, ",token)
+
+        # merge tokens
+        replaced_name = replaced_name + "/" + token
+    print("INFO: replaced_tokens:\n [%s] -> [%s]"%(name,replaced_name))
+
+    return replaced_name
+
 def getFilesetPath(conn,id):
     """
     Return path to the fileset of given image
@@ -404,38 +442,43 @@ def getFilesetPath(conn,id):
     return filesetPath,fName
 
 
-def checkLinks(src,targetDir,name,linkNames, linkTarget, id):
+def checkLinks(target, dir, name, linkNames, linkTargets, id):
     """
-   check link parameters
-   :param src: path that should be linked
-   :param targetDir: dir where the link should be created
-   :param name: name of link
-   :param linkNames: path/name of links
-   :param linkTarget: target that should be linked
-   :param id: id of object that should be named with link
-   :return:
+    Decide if symlink and target will be added to the lists of names and targets, or change symlink name if necessary
+    Args:
+        target: path that should be linked
+        dir: dir where the link should be created
+        name: name of link
+        linkNames: list of symlinks
+        linkTargets: list of link targets
+        id: id of object that should be linked
+   Return:
+       linkNames: list of symlinks
+       linkTarget: list of link targets
    """
-
-    dest = os.path.join(targetDir,name)
-    if src not in linkTarget:
-        if dest not in linkNames:
+    name,message = replace_special_char(name)
+    symlink = os.path.join(dir, name)
+    if target not in linkTargets:
+        if symlink not in linkNames:
             #("accept : %s"%name)
-            linkNames.append(dest)
-            linkTarget.append(src)
-        else:#rename
+            linkNames.append(symlink)
+            linkTargets.append(target)
+            if message:
+                print(message)
+        else:# link of same name still exists -> rename
             fName,extension = os.path.splitext(name)
             name = "%s_%s%s"%(fName,id,extension)
             print("# INFO: rename : %s [new: %s]"%(fName,name))
-            linkNames,linkTarget=checkLinks(src,targetDir,name,linkNames,linkTarget,id)
-    else: #src still exists
-        if dest not in linkNames:#ignore
+            linkNames,linkTarget=checkLinks(target, dir, name, linkNames, linkTargets, id)
+    else: #link to target still exists
+        if symlink not in linkNames:#ignore
             #print("# INFO: ignore %s (src exists, dest not)"%name)
             pass
         else: #ignore
             #print("# INFO: ignore %s (src exists, dest exists)"%name)
             pass
 
-    return linkNames,linkTarget
+    return linkNames,linkTargets
 
 
 def createSymlinks(linkNames, linkTarget):
