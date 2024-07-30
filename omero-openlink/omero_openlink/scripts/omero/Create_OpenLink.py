@@ -77,8 +77,25 @@ CMD = "curl -s %s/%s/%s | curl -K-"
 
 MAX_PATHLENGTH = 200 # max pathlength in windows:256
 
+#flag for non valid characters in filenames
+WARNINGS = False
+ERRORS= False
 # dict of {'<userID>':{'images':<list_of_imageIds>,'email':<mail>}} for mail notification
 NOTIFICATION_LIST={}
+
+
+
+
+
+# -------------------------------------------------------------------
+
+def setWarning():
+    global WARNINGS
+    WARNINGS = True
+
+def setError():
+    global ERRORS
+    ERRORS = True
 
 def get_realpath(path):
     """return target of symlink"""
@@ -111,10 +128,12 @@ def get_omero_paths(client):
     # catching empty paths
     if not managed_repo_dir:
         print("ERROR: no specification was found for managed repository path. Please check path of type Managed under \n >>omero fs repos \n or the value of omero.managed.dir under\n >>omero config get")
+        setError()
         return None,None
 
     if not orig_repo_dir:
         print("ERROR: no specification was found for omero repository path. Please check path of type Public under \n >>omero fs repos \n or the value of omero.data.dir under\n >>omero config get")
+        setError()
         return None,None
 
     if managed_repo_dir and not managed_repo_dir.endswith('/'):
@@ -172,7 +191,7 @@ def addToCurlFile(base,hashName):
                 relPath=relPath.replace('\\','/')
                 if len(relPath) > MAX_PATHLENGTH:
                     print("WARNING: pathlength is in the critical range! This could generate download issues for %s"%relPath)
-
+                    setWarning()
 
             # replace whitespaces
                 entry = CURL_PATTERN %(accessAreaName,os.sep,relPath,URL,
@@ -267,7 +286,7 @@ def createObjectDir(type,ppath,object,name):
             return path
         except:
             print("ERROR: Cannot create directory for ID:%s: %s in %s (possible problems:length of name, or name contains special char)"%(object.getId(),name,ppath))
-
+            setError()
             return None
     else:
         # check if existing object is the same
@@ -300,6 +319,7 @@ def getPath(image, slot):
 
     if linkDir is None:
         print("ERROR: can't create Project directory for ",image.getName())
+        setError()
 
     return linkDir
 
@@ -342,7 +362,7 @@ def isAllowedToShareData(conn,userID):
     print ("# INFO: Group Permission: %s (%s)" % (permission_names[perm_string], perm_string))
     if permission_names[perm_string]== permission_names['rw----']:
         print("\n# WARNING: This is a private group -> you can only create an OpenLink of data owned by yourself!\n")
-
+        setWarning()
         return False
 
     # check if given user is also an owner of this group
@@ -450,7 +470,7 @@ def addAttachment(obj,tdir):
                 paths = [line[0:] for line in subprocess.check_output(carg, shell=True).splitlines()]
                 if len(paths)>1:
                     print("# WARNING: file annotation target is not unique: %s --> use first match"%("\n".join(paths)))
-
+                    setWarning()
                 linkNames=[]
                 linkNames.append(os.path.join(tdir,ann.getFile().getName()))
                 linkTarget=[]
@@ -541,14 +561,14 @@ def addImages(conn,slot,images,user,addAttachments, allowedToShare,targetDir=Non
                     addToNotifyList(get_owner_of_data(conn,image),image.id)
             else:
                 print("# WARNING: No raw file or fileset available")
-
+                setWarning()
 
             # add available attachments if required
             if addAttachments:
                 addAttachment(image,targetDir)
         else:
             print("# WARNING: You are not allowed to share image: %s"%image.getId())
-
+            setWarning()
 
 
     # create links from proof images
@@ -760,8 +780,10 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
     loadDictContent(contentFileName)
 
     if destObjs is None:
+        setError()
         return None,"ERROR: Given objects not available"
     if destType is None:
+        setError()
         return None,"ERROR: Can't identify selected object. Please select Projects, Datasets or Images"
     elif destType=='Project':
         addProjects(conn,accessAreaPath,destObjs,conn.getUser(),addAttachments,allowedToShare)
@@ -795,6 +817,7 @@ def parseAccessAreaNames(p):
     except AttributeError:
         name = None # apply your error handling
         print("## ERROR ## at parse OpenLink names")
+        setError()
     return name
 
 
@@ -850,6 +873,7 @@ def getAvailableSlots(conn):
 
         exc_type, exc_obj, exc_tb = sys.exc_info()
         print('## ERROR ##: while reading OpenLink : %s\n %s %s'%(str(e),exc_type, exc_tb.tb_lineno))
+        setError()
 
     if len(values)==0:
         values = ['No OpenLink found for %s'% userName]
@@ -912,6 +936,7 @@ def run_script():
 
             global MANAGED_REP
             global ORIGINAL_REP
+            global WARNINGS
 
             if mrep:
                 MANAGED_REP = mrep
@@ -919,6 +944,18 @@ def run_script():
                 ORIGINAL_REP = orep
             # call main script, return the dest project
             message = addObjToAccessArea(conn,params,availableSlotsNames,paths)
+            #message = "Create OpenLink under \n%s\n After reload you can find URL and batch download command listed under OpenLink in the right hand pane"%message
+            message = "After reload you can find URL and batch download command listed under OpenLink in the right hand pane"
+
+            hints=[]
+            if WARNINGS:
+                hints.append("WARNINGS")
+            if ERRORS:
+                hints.append("ERRORS")
+
+            if hints:
+                message= "*** Please note there are %s, see (i) *** \n%s"%(" & ".join(hints),message)
+
             client.setOutput("Message", rstring(message))
         else:
             client.setOutput("ERROR",rstring("No such OpenLink directory: %s"%OPENLINK_DIR))
