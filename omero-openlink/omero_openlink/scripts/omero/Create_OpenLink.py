@@ -57,10 +57,10 @@ LENGTH_HASH = 12
 # OMERO.script GUI elements
 PARAM_DATATYPE = "Data_Type"
 PARAM_ID = "IDs"
-PARAM_SLOTS="Choose existing OpenLink"
-PARAM_ADD_TO_SLOT="Add to existing OpenLink"
-PARAM_SLOT_NAME="OpenLink Name"
-PARAM_ATTACH="Add attachments"
+PARAM_SLOTS="Choose_existing_OpenLink"
+PARAM_ADD_TO_SLOT="Add_to_existing_OpenLink"
+PARAM_SLOT_NAME="OpenLink_Name"
+PARAM_ATTACH="Add_attachments"
 
 # email server IP adress
 SMTP_IP = '127.0.0.1'
@@ -701,7 +701,12 @@ def generateHashName(user,n,accessAreaName):
     return hashName
 
 
-def createAreaName():
+def createDefaultAreaName():
+    """
+    Return default name for an area.
+    Returns:
+        timeStr: current date and time as string in the format: %Y-%m-%d_%H-%M-%S
+    """
     date = datetime.datetime.now()
     timeStr = date.strftime("%Y-%m-%d_%H-%M-%S")
 
@@ -738,7 +743,7 @@ def email_results(conn, imageIDs,email,smtpObj):
         email: email address of receiver
         smtpObj:
     """
-    sharerName=conn.getUser().getName()
+    sharerName=conn.getUser().getFullName()
     msg = MIMEMultipart()
     msg['From'] = ADMIN_EMAIL
     msg['To'] = email
@@ -793,19 +798,8 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
     # can not owned data be shared?
     allowedToShare=isAllowedToShareData(conn,conn.getUser().getId())
 
-    # get available slot path or create a new slot directory
-    accessAreaPath=None
-    if params.get(PARAM_ADD_TO_SLOT) and paths and len(paths)>0:
-        index = availableSlots.index(params.get(PARAM_SLOTS))
-        accessAreaPath = paths[index]
-        hashName = os.path.basename(accessAreaPath)
-        slotName = parseAccessAreaNames(hashName)
-    else:
-        # create a new slot
-        slotName = params.get(PARAM_SLOT_NAME)
-        if not slotName:
-            slotName=createAreaName()
-        accessAreaPath,hashName=generateNewAccessArea(conn.getUser(),slotName)
+    # prepare openLink area
+    accessAreaPath, hashName = prepareOpenLinkArea(availableSlots, conn, params, paths)
 
     addAttachments=False
     if params.get(PARAM_ATTACH):
@@ -850,6 +844,23 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
     notifyMembers(conn)
     return "Create OpenLink:  %s. After reload you can find URL and batch download command listed under OpenLink in the right hand pane"%slotName
 
+
+def prepareOpenLinkArea(availableSlots, conn, params, paths):
+    """
+    Return path to openlink area and hashName
+    """
+    # get available openlink
+    if params.get(PARAM_ADD_TO_SLOT) and paths and len(paths) > 0:
+        index = availableSlots.index(params.get(PARAM_SLOTS))
+        accessAreaPath = paths[index]
+        hashName = os.path.basename(accessAreaPath)
+    else:
+        # create new openlink
+        slotName = params.get(PARAM_SLOT_NAME)
+        if not slotName:
+            slotName = createDefaultAreaName()
+        accessAreaPath, hashName = generateNewAccessArea(conn.getUser(), slotName)
+    return accessAreaPath, hashName
 
 def parseAccessAreaNames(p):
     """
