@@ -64,6 +64,15 @@ Nginx configuration
 -------------------
 
 This section assumes that an you use an nginx server.
+
+**Prerequisites:**
+For the configuration you have to reuse the specified values for `SERVER_NAME` and `OPENLINK_DIR`.
+Specify the URL under which the data should be accessible:
+
+::
+
+    SERVERNAME/SUBGROUP # this could be data.myorg.de/openlink
+
 You can configure your nginx in two way's:
 
 *Option 1:*
@@ -71,7 +80,7 @@ Add a new location to your nginx configuration file (etc/nginx/conf.d/omeroweb.c
 
 ::
 
-    location  /openlink {
+    location  /SUBGROUP {
             proxy_read_timeout 36000;  # 10 hours
             limit_rate 10000M;  # 10 GByte
             gzip on;
@@ -81,7 +90,7 @@ Add a new location to your nginx configuration file (etc/nginx/conf.d/omeroweb.c
             autoindex_format html; # html, xml, json, or jsonp
             autoindex_exact_size off; # on off
             autoindex_localtime on; # on off  (UTC)
-            alias /storage/openlink/;  # the links will be created here
+            alias OPENLINK_DIR;  # the links will be created here
     }
 
 
@@ -94,7 +103,7 @@ Or create a new website for nginx by create a new file (e.g. openlink.conf) in /
         listen 80;
         server_name SERVER_NAME;  # url alias to this nginx site
 
-        location /openlink {
+        location /SUBGROUP {
 
             proxy_read_timeout 36000;  # 10 hours
             limit_rate 10000M;  # 10 GByte
@@ -105,9 +114,18 @@ Or create a new website for nginx by create a new file (e.g. openlink.conf) in /
             autoindex_format html; # html, xml, json, or jsonp
             autoindex_exact_size off; # on off
             autoindex_localtime on; # on off  (UTC)
-            alias /storage/openlink/;  # the links will be created here
+            alias OPENLINK_DIR;  # the links will be created here
         }
     }
+
+*Note:* To use a special style (like the example in *scripts/nginx/autoIndexStyle.xslt*) for your openlink data representation,
+please copy the style file to */etc/nginx* and use the following configuration:
+
+::
+
+    autoindex_format  xml;
+    xslt_stylesheet /etc/nginx/autoindexStyle.xslt       path="$uri" schema="$scheme" host="$host";
+
 
 
 Enable openlink creation
