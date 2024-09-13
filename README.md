@@ -2,16 +2,25 @@
 
 An OMERO.web plugin that creates openly accessible links (URLS for raw files) to your data in OMERO and a batch file to download the data with 'curl'.
 
-Main application:
 
-* Bundle data of different groups/projects/datasets
-* Fast web download
-* Data sharing via link
+## Main application:
+* Make internal data for a publication available to reviewers in advance via a URL
+* Bundle data of different groups/projects/datasets together
+* Fast download of large data
+* Enable external collaborators to easily access selected data via URL
 
+
+## Example: 
+**Provide data used in a publication**
+
+Winkelmann, H., Richter, C. P., Eising, J., Piehler, J., & Kurre, R. (2024). Correlative single-molecule and structured illumination microscopy of fast dynamics at the plasma membrane. Nat. Commun., 15(5813), 1–19. [doi: 10.1038/s41467-024-49876-9](https://doi.org/10.1038/s41467-024-49876-9)
+
+[OpenLink of publication data](https://omero-data.cellnanos.uos.de/pub_Winkelmann_et_al_2024_NatCommun/)
+## Functionality:
 
 <img src="/images/OpenLink.png?raw=true" height="450" > 
 
-OMERO.openlink is composed of two components:
+#### OMERO.openlink is composed of two components:
 
 ***Create_OpenLink.py*** (generation)
 A server side script that generates soft links to your data and creates a **curl** file for batch download of this data.
