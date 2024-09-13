@@ -493,6 +493,11 @@ def createSymlinks(linkNames, linkTarget):
         for (src, dest) in zip(linkTarget,linkNames):
             #print("# create link: %s ->\n\t%s"%(dest,src))
             try:
+                # if src path is a symlink (for inplace imported data)
+                if os.path.islink(src):
+                    # use string representing the path to which the symbolic link points 
+                    src=os.readlink(src)
+
                 os.symlink(src, dest)
             except FileExistsError:
                 print("# INFO: skip:: Link still exists: ",src)
