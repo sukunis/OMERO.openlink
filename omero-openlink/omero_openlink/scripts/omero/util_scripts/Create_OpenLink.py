@@ -121,6 +121,8 @@ def get_omero_paths(client):
     repos = resources.repositories()
     managed_repo_dir = None
     orig_repo_dir = None
+
+    # Identify repository paths
     for desc in repos.descriptions:
         if "ManagedRepository".lower() in desc.name.val.lower():
             managed_repo_dir = desc.path.val + desc.name.val
@@ -144,14 +146,17 @@ def get_omero_paths(client):
         setError()
         return None,None
 
+    # Ensure paths end with a slash
     if managed_repo_dir and not managed_repo_dir.endswith('/'):
         managed_repo_dir = managed_repo_dir + '/'
     if orig_repo_dir:
         orig_repo_dir = orig_repo_dir + '/Files/'
 
+    # Resolve to absolute paths 
     managed_repo_dir=get_realpath(managed_repo_dir)
     orig_repo_dir=get_realpath(orig_repo_dir)
 
+    #  Validate paths exist
     if not os.path.exists(managed_repo_dir):
         managed_repo_dir = None
     if not os.path.exists(orig_repo_dir):
