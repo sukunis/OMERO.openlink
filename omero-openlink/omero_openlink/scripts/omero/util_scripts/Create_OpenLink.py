@@ -173,8 +173,9 @@ def get_file_paths(directory, file_paths):
     Returns:
         file_paths: list of absolute paths of files
     """
-    for f in glob.iglob("%s/*"%directory,recursive=True):
+    for f in glob.iglob(os.path.join(directory, '*'),recursive=True):
         if os.path.isdir(f):
+            # Collect paths from subdirectories
             file_paths=get_file_paths(f, file_paths)
         else:
             file_paths.append(f)
@@ -193,7 +194,7 @@ def addToCurlFile(base,hashName):
     curlFile = os.path.join(base,CURL_FILE)
     contentFile = os.path.join(base,CONTENT_FILE)
     fileList = get_file_paths(base,[])
-    accessAreaName = parseAccessAreaNames(hashName)
+    accessAreaName = parseAreaNames(hashName)
     try:
         tFile = open(curlFile,'w')
         for file in fileList:
@@ -783,25 +784,25 @@ def createDefaultAreaName():
 
     return timeStr
 
-def generateNewAccessArea(user,accessAreaName):
+def generateNewArea(user,name):
     """
     Args:
         user: user object
-        accessAreaName: access area name specified by user
+        name: access area name specified by user
     Returns:
-        accessAreaPath: path to area
+        pathToArea: path to area
         hashName: whole name of area directory
     """
 
-    hashName = generateHashName(user,LENGTH_HASH,accessAreaName)
+    hashName = generateHashName(user,LENGTH_HASH,name)
 
     while os.path.exists(os.path.join(OPENLINK_DIR,hashName)):
-        hashName = generateHashName(user,LENGTH_HASH,accessAreaName)
+        hashName = generateHashName(user,LENGTH_HASH,name)
 
-    accessAreaPath = os.path.join(OPENLINK_DIR,hashName)
-    os.mkdir(accessAreaPath)
+     pathToArea = os.path.join(OPENLINK_DIR,hashName)
+     os.mkdir(pathToArea)
 
-    return accessAreaPath,hashName
+    return pathToArea,hashName
 
 
 def email_results(conn, imageIDs,email,smtpObj):
@@ -849,14 +850,14 @@ def notifyMembers(conn):
         print('# INFO: Notification via mail took %.2f seconds' % (time.time()-start))
 
 
-def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
+def addObjToArea(conn,params,existingAreasNames=None,paths=None):
     """
     add selected object and its content to a slot on OPENLINK_DIR as link to sources on ManagedRepository
 
     Args:
         conn: current user connection
         params: user input
-        availableSlots: list of available slots for current user
+        existingAreasNames: list of available slots for current user
         paths: list of paths to the available slots of the surrent user
     Returns:
         message:
@@ -870,7 +871,7 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
     allowedToShare=isAllowedToShareData(conn,conn.getUser().getId())
 
     # prepare openLink area
-    accessAreaPath, hashName = prepareOpenLinkArea(availableSlots, conn, params, paths)
+    accessAreaPath, hashName = prepareOpenLinkArea(existingAreasNames, conn, params, paths)
 
     addAttachments=False
     if params.get(PARAM_ATTACH):
@@ -920,24 +921,25 @@ def addObjToAccessArea(conn,params,availableSlots=None,paths=None):
     return url
 
 
-def prepareOpenLinkArea(availableSlots, conn, params, paths):
+def prepareOpenLinkArea(existingAreasNames, conn, params, paths):
     """
     Return path to openlink area and hashName
     """
     # get available openlink
     if params.get(PARAM_ADD_TO_SLOT) and paths and len(paths) > 0:
-        index = availableSlots.index(params.get(PARAM_SLOTS))
+        index = existingAreasNames.index(params.get(PARAM_SLOTS))
         accessAreaPath = paths[index]
         hashName = os.path.basename(accessAreaPath)
     else:
         # create new openlink
-        slotName = params.get(PARAM_SLOT_NAME)
-        if not slotName:
-            slotName = createDefaultAreaName()
-        accessAreaPath, hashName = generateNewAccessArea(conn.getUser(), slotName)
+        areaName = params.get(PARAM_SLOT_NAME)
+        if not areaName:
+            areaName = createDefaultAreaName()
+        accessAreaPath, hashName = generateNewArea(conn.getUser(), areaName)
+
     return accessAreaPath, hashName
 
-def parseAccessAreaNames(p):
+def parseAreaNames(p):
     """
     Return name of openLink area specified by user
     """
@@ -965,7 +967,7 @@ def getAreasOfUser(id):
 
 
 
-def getAvailableSlots(conn):
+def getExistingAreas(conn):
     """
     get all slots for current user (OPENLINK_DIR/rn_<RN>_<userid>_<accessAreaName>/;
     Args:
@@ -979,18 +981,19 @@ def getAvailableSlots(conn):
     try:
         user = conn.getUser()
         userName = user.getName()
-        slotParentDir=None
+        listOfDirectoriesForUser=None
         if os.path.exists(OPENLINK_DIR):
-            slotParentDir=getAreasOfUser(str(user.getId()))
+            listOfDirectoriesForUser=getAreasOfUser(str(user.getId()))
 
-        if not slotParentDir or len(slotParentDir)==0:
+        if not listOfDirectoriesForUser or len(listOfDirectoriesForUser)==0:
             return ['No OpenLinks available for %s'% userName],[]
 
-        # get slotNames
+        # get names
         values=[]
         paths=[]
-        for p in slotParentDir:
-            areaName = parseAccessAreaNames(os.path.basename(p))
+        for p in listOfDirectoriesForUser:
+            areaName = parseAreaNames(os.path.basename(p))
+
             if areaName:
                 timestamp=os.path.getctime(p)
                 dt = datetime.datetime.fromtimestamp(timestamp)
@@ -1020,7 +1023,7 @@ def run_script():
     client.createSession()
     conn = omero.gateway.BlitzGateway(client_obj=client)
     conn.SERVICE_OPTS.setOmeroGroup(-1)
-    availableSlotsNames,paths = getAvailableSlots(conn)
+    existingAreaNames,paths = getExistingAreas(conn)
     client.closeSession()
 
     dataTypes = [rstring('Screen'),rstring('Plate'),rstring('Project'),rstring('Dataset'),rstring('Image')]
@@ -1045,7 +1048,7 @@ def run_script():
                      description="Add data to an existing OpenLink area",default=False),
         scripts.String(PARAM_SLOTS,optional=True,grouping="4.1",
                        description="Choose available OpenLink area",
-                       values=availableSlotsNames),
+                       values=existingAreaNames),
         scripts.Bool(PARAM_ATTACH,grouping="5",
                      description="Link all file attachments of selected and subordinate objects",default=True),
 
@@ -1072,7 +1075,7 @@ def run_script():
             if orep:
                 ORIGINAL_REP = orep
             # call main script, return the dest project
-            message = addObjToAccessArea(conn,params,availableSlotsNames,paths)
+            message = addObjToArea(conn,params,existingAreaNames,paths)
             #message = "Create OpenLink under \n%s\n After reload you can find URL and batch download command listed under OpenLink in the right hand pane"%message
             message = "After reload you can find URL and batch download command listed under OpenLink in the right hand pane"
 
