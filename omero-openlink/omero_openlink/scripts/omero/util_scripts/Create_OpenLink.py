@@ -799,8 +799,8 @@ def generateNewArea(user,name):
     while os.path.exists(os.path.join(OPENLINK_DIR,hashName)):
         hashName = generateHashName(user,LENGTH_HASH,name)
 
-     pathToArea = os.path.join(OPENLINK_DIR,hashName)
-     os.mkdir(pathToArea)
+    pathToArea = os.path.join(OPENLINK_DIR,hashName)
+    os.mkdir(pathToArea)
 
     return pathToArea,hashName
 
