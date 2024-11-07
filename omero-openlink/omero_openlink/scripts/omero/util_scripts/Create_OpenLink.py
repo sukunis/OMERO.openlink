@@ -544,6 +544,9 @@ def addToNotifyList(user, image_ID):
     dic = user.simpleMarshal()
     if 'email' in dic and dic['email']:
         userEmail = dic['email']
+    else:
+        print("No mail is given for user %s"%user.getName())
+        return
 
     image_url = "http://omero.cellnanos.uni-osnabrueck.de/webclient/?show=image-"+str(image_ID)
 
