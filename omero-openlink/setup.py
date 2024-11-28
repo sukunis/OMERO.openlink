@@ -18,7 +18,7 @@ VERSION = read("VERSION.txt").strip()
 DESCRIPTION = "OMERO.openlink app"
 AUTHOR = "sukunis"
 MAINTAINER = "sukunis"
-LICENSE = "AGPL-3.0"
+LICENSE = "GNU Affero General Public License v3.0"
 HOMEPAGE = "https://github.com/sukunis/OMERO.openlink"
 
 
