@@ -16,8 +16,8 @@ def read(fname):
 
 VERSION = read("VERSION.txt").strip()
 DESCRIPTION = "OMERO.openlink app"
-AUTHOR = "Susanne Kunis"
-MAINTAINER = "Susanne Kunis"
+AUTHOR = "sukunis"
+MAINTAINER = "sukunis"
 LICENSE = "AGPL-3.0"
 HOMEPAGE = "https://github.com/sukunis/OMERO.openlink"
 
