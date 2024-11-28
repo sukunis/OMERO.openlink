@@ -51,7 +51,7 @@ setup(name="omero-openlink",
       ],  # Get strings from
           # http://pypi.python.org/pypi?%3Aaction=list_classifiers
       author=AUTHOR,
-      author_email='sukunis@uos.de',
+      author_email='sinukesus@gmail.com',
       maintainer=MAINTAINER,
       license=LICENSE,
       url=HOMEPAGE,
