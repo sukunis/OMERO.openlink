@@ -28,9 +28,9 @@ except ImportError:
         logger.error('No Pillow installed,\
             line plots and split channel will fail!')
 
-OPENLINK_DIR = openlink_settings.OPENLINK_DIR[1:-1]
+OPENLINK_DIR = openlink_settings.OPENLINK_DIR.rstrip("/")
 TYPE_HTTP = openlink_settings.TYPE_HTTP
-SERVER_NAME = '%s://%s' % (TYPE_HTTP, openlink_settings.SERVER_NAME[1:-1])
+SERVER_NAME = f'{TYPE_HTTP}://{openlink_settings.SERVER_NAME}'.rstrip("/")
 
 
 CMD_CURL = "curl -s %s/%s/%s | curl -K-"
