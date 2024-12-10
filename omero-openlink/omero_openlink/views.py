@@ -42,15 +42,16 @@ SKIP_FILES = [CONTENT_FILE, CURL_FILE]
 
 @login_required()
 def debugoutput(request, conn=None, **kwargs):
-    data = []
-    data.append({'OpenLink Dir': OPENLINK_DIR})
-    data.append({'Server Name': SERVER_NAME})
+    data = [{
+        'OpenLink Dir': OPENLINK_DIR,
+        'Server Name': SERVER_NAME
+    }]
     # test openlink directory access
     if os.path.exists(OPENLINK_DIR):
-        data.append({"Permission mask OPENLINK_DIR (in octal)":
-                     oct(os.stat(OPENLINK_DIR).st_mode)[-3:]})
+        perm = oct(os.stat(OPENLINK_DIR).st_mode)[-3:]
+        data[0]["Permission mask OPENLINK_DIR (in octal)"] = perm
     else:
-        data.append({'ERROR: can not access OPENLINK_DIR'})
+        data.append("ERROR: can't access OPENLINK_DIR")
 
     # list openlink_dir content
     # dircontent = os.listdir(OPENLINK_DIR)
@@ -59,13 +60,17 @@ def debugoutput(request, conn=None, **kwargs):
         user = conn.getUser()
         slotParentDir = getAreasOfUser(str(user.getId()))
         if slotParentDir is not None:
-            data.append({"Current User ID": str(user.getId())})
-            data.append({"Current User Name": user.getName()})
+            data.append({
+                "Current User ID": str(user.getId()),
+                "Current User Name": user.getName()
+            })
 
             for p in slotParentDir:
                 areaName = parseAccessAreaNames(os.path.basename(p))
-                data.append({"SLOT user path": p})
-                data.append({"SLOT user name": areaName})
+                data.append({
+                    "SLOT user path": p,
+                    "SLOT user name": areaName
+                })
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
         data.append({'ERROR': 'while reading slot dir: ' +
