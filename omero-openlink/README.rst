@@ -127,6 +127,28 @@ please copy the style file to */etc/nginx* and use the following configuration:
     xslt_stylesheet /etc/nginx/autoindexStyle.xslt       path="$uri" schema="$scheme" host="$host";
 
 
+If a user navigates to a URL that corresponds to a directory on the server, NGINX looks for an index file to serve. By default, this is usually *index.html*. If this file is present, NGINX will serve its contents instead of displaying a directory listing. It is recommendet to put such a *index.html* in the **OPENLINK_DIR** to avoid the listing of all created openlink data.
+
+Example for *index.html*
+
+::
+
+    <!DOCTYPE html>
+    <html lang="de">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Omero Downloads</title>
+      </head>
+      <body>
+      <a href="https://data.myorg.de/openlink">Please go first to the Omero-System to create DownloadLinks!</a>
+      </body>
+    </html>
+
+
+
+
+
 
 Enable openlink creation
 ---------------------------
