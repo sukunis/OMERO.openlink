@@ -13,6 +13,7 @@ import os
 import re
 import datetime
 import shutil
+import glob
 from operator import itemgetter
 
 from . import openlink_settings
@@ -94,24 +95,10 @@ def getAreasOfUser(id):
     :param id: user id in OMERO
     :return: list of directories in ACCESS_AREA that belongs to given id
     """
-    values = []
-    GET_ID_PATTERN = r'_(\d+)_'
 
     if not os.path.exists(OPENLINK_DIR):
         return None
-    for x in os.listdir(OPENLINK_DIR):
-        if os.path.isdir(os.path.join(OPENLINK_DIR, x)):
-            if x.startswith("rn_"):
-                found = None
-                try:
-                    found = re.search(GET_ID_PATTERN, x).group(1)
-                except AttributeError:
-                    found = None
-
-                if found == id:
-                    values.append(os.path.join(OPENLINK_DIR, x))
-
-    return values
+    return glob.glob(os.path.join(OPENLINK_DIR, f"rn*_{id}_*"))
 
 
 def get_area_size(path):
