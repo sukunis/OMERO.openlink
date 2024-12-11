@@ -13,6 +13,7 @@ import os
 import re
 import datetime
 import shutil
+import glob
 from operator import itemgetter
 
 from . import openlink_settings
@@ -28,56 +29,65 @@ except ImportError:
         logger.error('No Pillow installed,\
             line plots and split channel will fail!')
 
-OPENLINK_DIR=openlink_settings.OPENLINK_DIR[1:-1]
+OPENLINK_DIR = openlink_settings.OPENLINK_DIR.rstrip("/")
 TYPE_HTTP = openlink_settings.TYPE_HTTP
-SERVER_NAME = '%s://%s'%(TYPE_HTTP,openlink_settings.SERVER_NAME[1:-1])
+SERVER_NAME = f'{TYPE_HTTP}://{openlink_settings.SERVER_NAME}'.rstrip("/")
 
 
-CMD_CURL="curl -s %s/%s/%s | curl -K-"
-CONTENT_FILE="content.json"
-CURL_FILE="batch_download.curl"
-GET_SLOTNAME_PATTERN = '^rn_[A-Z,0-9]+_\d+_(.+)'
-SKIP_FILES=[CONTENT_FILE,CURL_FILE]
+CMD_CURL = "curl -s %s/%s/%s | curl -K-"
+CONTENT_FILE = "content.json"
+CURL_FILE = "batch_download.curl"
+GET_SLOTNAME_PATTERN = r'^rn_[A-Z,0-9]+_\d+_(.+)'
+SKIP_FILES = [CONTENT_FILE, CURL_FILE]
 
 
 @login_required()
-def debugoutput(request,conn=None,**kwargs):
-    data=[]
-    data.append({'OpenLink Dir':OPENLINK_DIR})
-    data.append({'Server Name':SERVER_NAME})
+def debugoutput(request, conn=None, **kwargs):
+    data = [{
+        'OpenLink Dir': OPENLINK_DIR,
+        'Server Name': SERVER_NAME
+    }]
     # test openlink directory access
     if os.path.exists(OPENLINK_DIR):
-        data.append({"Permission mask OPENLINK_DIR (in octal)":oct(os.stat(OPENLINK_DIR).st_mode)[-3:]})
+        perm = oct(os.stat(OPENLINK_DIR).st_mode)[-3:]
+        data[0]["Permission mask OPENLINK_DIR (in octal)"] = perm
     else:
-        data.append({'ERROR: can not access OPENLINK_DIR'})
+        data.append("ERROR: can't access OPENLINK_DIR")
 
     # list openlink_dir content
-    #dircontent = os.listdir(OPENLINK_DIR)
-    #data.append({",".join([str(elem) for elem in dircontent])})
+    # dircontent = os.listdir(OPENLINK_DIR)
+    # data.append({",".join([str(elem) for elem in dircontent])})
     try:
         user = conn.getUser()
-        slotParentDir=getAreasOfUser(str(user.getId()))
+        slotParentDir = getAreasOfUser(str(user.getId()))
         if slotParentDir is not None:
-            data.append({"Current User ID":str(user.getId())})
-            data.append({"Current User Name":user.getName()})
+            data.append({
+                "Current User ID": str(user.getId()),
+                "Current User Name": user.getName()
+            })
 
             for p in slotParentDir:
-                areaName =  parseAccessAreaNames(os.path.basename(p))
-                data.append({"SLOT user path":p})
-                data.append({"SLOT user name":areaName})
+                areaName = parseAccessAreaNames(os.path.basename(p))
+                data.append({
+                    "SLOT user path": p,
+                    "SLOT user name": areaName
+                })
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
-        append.append({'ERROR': 'while reading slot dir: %s\n %s %s'%(str(e),exc_type, exc_tb.tb_lineno)})
+        data.append({'ERROR': 'while reading slot dir: ' +
+                     f'{str(e)}\n {exc_type} {exc_tb.tb_lineno}'})
 
-    return JsonResponse(data,safe=False)
+    return JsonResponse(data, safe=False)
+
 
 def parseAccessAreaNames(p):
     try:
         name = re.search(GET_SLOTNAME_PATTERN, p).group(1)
     except AttributeError:
-        name = None # apply your error handling
+        name = None  # apply your error handling
         print("ERROR at scan access areas by slot name")
     return name
+
 
 def getAreasOfUser(id):
     """
@@ -85,24 +95,11 @@ def getAreasOfUser(id):
     :param id: user id in OMERO
     :return: list of directories in ACCESS_AREA that belongs to given id
     """
-    values=[]
-    GET_ID_PATTERN = '_(\d+)_'
 
     if not os.path.exists(OPENLINK_DIR):
         return None
-    for x in os.listdir(OPENLINK_DIR):
-        if os.path.isdir(os.path.join(OPENLINK_DIR,x)):
-            if x.startswith("rn_"):
-                found=None
-                try:
-                    found = re.search(GET_ID_PATTERN, x).group(1)
-                except AttributeError:
-                    found = None
+    return glob.glob(os.path.join(OPENLINK_DIR, f"rn*_{id}_*"))
 
-                if found == id:
-                    values.append(os.path.join(OPENLINK_DIR,x))
-
-    return values
 
 def get_area_size(path):
     """Return total size of files in path and subdirs. If
@@ -111,8 +108,7 @@ def get_area_size(path):
     """
     total = 0
     for entry in os.scandir(path):
-        if not entry in SKIP_FILES:
-
+        if entry not in SKIP_FILES:
             try:
                 is_dir = entry.is_dir(follow_symlinks=True)
             except OSError as error:
@@ -128,56 +124,65 @@ def get_area_size(path):
 
     return total
 
+
 @login_required()
-def openlink(request,conn=None, **kwargs):
-    values=[]
-    debug=""
+def openlink(request, conn=None, **kwargs):
+    values = []
+    debug = ""
     try:
         user = conn.getUser()
-        userName = user.getName()
-        userId = [user.getId()]
-
-        slotParentDir=getAreasOfUser(str(user.getId()))
+        slotParentDir = getAreasOfUser(str(user.getId()))
 
         if slotParentDir is not None:
             for p in slotParentDir:
-                debug="%s...[%s]..."%(debug,p)
+                debug = "%s...[%s]..." % (debug, p)
                 areaName = parseAccessAreaNames(os.path.basename(p))
                 if areaName is not None:
-                    timestamp=os.path.getctime(p)
+                    timestamp = os.path.getctime(p)
                     dt = datetime.datetime.fromtimestamp(timestamp)
-                    dt=dt.replace(tzinfo=datetime.timezone.utc) #Convert it to an aware datetime object in UTC time.
-                    dt=dt.astimezone() #Convert it to your local timezone (still aware)
-                    thisDate=dt.strftime("%d %b %Y (%I:%M:%S %p)") #Print it with a directive of choice
-                    data={'date':thisDate,'area':areaName,'timestamp':timestamp,'hashname':os.path.basename(p),
-                          'url':"%s/%s/"%(SERVER_NAME,os.path.basename(p)),
-                          'cmd':CMD_CURL%(SERVER_NAME,os.path.basename(p).replace(" ","%20"),CURL_FILE),
-                          'size': filesizeformat(get_area_size(p))
+                    # Convert it to an aware datetime object in UTC time.
+                    dt = dt.replace(tzinfo=datetime.timezone.utc)
+                    # Convert it to your local timezone (still aware)
+                    dt = dt.astimezone()
+                    # Print it with a directive of choice
+                    thisDate = dt.strftime("%d %b %Y (%I:%M:%S %p)")
+                    data = {'date': thisDate, 'area': areaName,
+                            'timestamp': timestamp,
+                            'hashname': os.path.basename(p),
+                            'url': f"{SERVER_NAME}/{os.path.basename(p)}/",
+                            'cmd': CMD_CURL % (
+                                SERVER_NAME,
+                                os.path.basename(p).replace(" ", "%20"),
+                                CURL_FILE),
+                            'size': filesizeformat(get_area_size(p))
                           }
                     values.append(data)
     except Exception as e:
         exc_type, exc_obj, exc_tb = sys.exc_info()
 
-        debug="%s...[ERROR: \n%s[%s]]..."%(debug,str(e),exc_tb.tb_lineno)
-        print('ERROR: while reading openlink dir: %s\n '%(str(e)))
+        debug = "%s...[ERROR: \n%s[%s]]..." % (debug, str(e), exc_tb.tb_lineno)
+        print('ERROR: while reading openlink dir: %s\n ' % (str(e)))
 
-    values=sorted(values, key=itemgetter('timestamp'),reverse=True)
-    return render(request, 'omero_openlink/index.html',{'slots':values,'debug':debug})
-
-
+    values = sorted(values, key=itemgetter('timestamp'), reverse=True)
+    return render(request,
+                  'omero_openlink/index.html',
+                  {'slots': values, 'debug': debug})
 
 
 @login_required()
-def delete(request,conn=None,**kwargs):
+def delete(request, conn=None, **kwargs):
     if request.method == "POST":
         hashname = request.POST.get('hashname_id')
-        myPath = '%s/%s'%(OPENLINK_DIR,hashname)
+        myPath = '%s/%s' % (OPENLINK_DIR, hashname)
         if os.path.exists(myPath):
             try:
                 shutil.rmtree(myPath)
             except OSError as e:
                 exc_type, exc_obj, exc_tb = sys.exc_info()
-                print('ERROR: while delete openlink area: %s\n '%(str(e)))
-                return JsonResponse(['ERROR:while delete openlink area',str(e),exc_tb.tb_lineno],safe=False)
+                print('ERROR: while delete openlink area: %s\n ' % (str(e)))
+                return JsonResponse(['ERROR:while delete openlink area',
+                                     str(e), exc_tb.tb_lineno],
+                                    safe=False)
 
-    return HttpResponseRedirect(request.META.get('HTTP_REFERER')+'#openlink_tab')
+    return HttpResponseRedirect(request.META.get('HTTP_REFERER') +
+                                '#openlink_tab')
