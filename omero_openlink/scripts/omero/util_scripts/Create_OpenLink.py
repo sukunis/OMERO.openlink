@@ -69,7 +69,7 @@ NGINX_LOCATION= ''#'/openlink'
 URL = "%s://%s%s"%(TYPE_HTTP,SERVER_NAME,NGINX_LOCATION)
 
 OPENLINK_PATTERN='rn_*_'
-GET_SLOTNAME_PATTERN = '^rn_[A-Z,0-9]+_\d+_(.+)'
+GET_SLOTNAME_PATTERN = r'^rn_[A-Z,0-9]+_\d+_(.+)'
 CURL_FILE="batch_download.curl"
 CONTENT_FILE="content.json"
 CURL_PATTERN='create-dirs\n output="%s%s%s"\n continue-at -\n url="%s/%s/%s"'
