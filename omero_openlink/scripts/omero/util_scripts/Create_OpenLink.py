@@ -1070,7 +1070,7 @@ def run_script():
 
 
         namespaces=[omero.constants.namespaces.NSDYNAMIC],
-        version="2.0.0",
+        version="2.1.1",
         authors=["Susanne Kunis", "CellNanOs"],
         institutions=["University of Osnabrueck"],
         contact="sinukesus@gmail.com",
