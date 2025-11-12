@@ -72,7 +72,7 @@ OPENLINK_PATTERN='rn_*_'
 GET_SLOTNAME_PATTERN = r'^rn_[A-Z,0-9]+_\d+_(.+)'
 CURL_FILE="batch_download.curl"
 CONTENT_FILE="content.json"
-CURL_PATTERN='create-dirs\n output="%s%s%s"\n continue-at -\n url="%s/%s/%s"'
+CURL_PATTERN='create-dirs\noutput="%s%s%s"\ncontinue-at -\nurl="%s/%s/%s"\n'
 
 CMD = "curl -s %s/%s/%s | curl -K-"
 
