@@ -368,10 +368,9 @@ def userIsFullAdmin(conn):
         return True
 
 
-def isAllowedToShareData(conn,userID):
+def groupAllowedToShareData(conn, userID):
     '''
-    Return true if given user is owner of the current group and the group permission is NOT private.
-
+    Return true if the current group is read-annotate or (if the user is owner of the group and the group is not private)
     Args:
         conn: BlitzGateway connection
         userID: user ID
@@ -388,12 +387,15 @@ def isAllowedToShareData(conn,userID):
         'rwra--': 'READ-ANNOTATE',
         'rwrw--': 'READ-WRITE'}
     print ("# INFO: Group Permission: %s (%s)" % (permission_names[perm_string], perm_string))
-    if permission_names[perm_string]== permission_names['rw----']:
-        print("\n# WARNING: This is a private group -> you can only create an OpenLink of data owned by yourself!\n")
-        setWarning()
-        return False
 
-    # check if given user is also an owner of this group
+    # private group?
+    if permission_names[perm_string]== permission_names['rw----']:
+        return False
+    # read-write group?
+    if permission_names[perm_string]== permission_names['rwrw--']:
+        return True
+
+    # user is owner of this group?
     owners, members = group.groupSummary()
     for own in owners:
         if userID == own.getId():
@@ -638,7 +640,7 @@ def addImages(conn,slot,images,user,addAttachments, allowedToShare,targetDir=Non
             if addAttachments:
                 addAttachment(image,targetDir)
         else:
-            print("# WARNING: You are not allowed to share image: %s"%image.getId())
+            print(f"# WARNING: You are not allowed to share image: {image.getId()}. (ownership: {user_is_owner}, group permission: {allowedToShare})")
             setWarning()
 
 
@@ -881,8 +883,8 @@ def addObjToArea(conn,params,existingAreasNames=None,paths=None):
     global NOTIFICATION_LIST
     NOTIFICATION_LIST={}
 
-    # can not owned data be shared?
-    allowedToShare=isAllowedToShareData(conn,conn.getUser().getId())
+    # check group permissions for sharing
+    allowedToShare=groupAllowedToShareData(conn, conn.getUser().getId())
 
     # prepare openLink area
     accessAreaPath, hashName = prepareOpenLinkArea(existingAreasNames, conn, params, paths)
