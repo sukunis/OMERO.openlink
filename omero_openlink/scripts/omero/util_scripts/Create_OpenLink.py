@@ -359,6 +359,14 @@ def userIsOwner(conn,userName, id):
         return True
     return False
 
+def userIsFullAdmin(conn):
+    # Check if you are an full administrator
+
+    if not conn.isFullAdmin():
+        return False
+    else:
+        return True
+
 
 def isAllowedToShareData(conn,userID):
     '''
@@ -592,8 +600,11 @@ def addImages(conn,slot,images,user,addAttachments, allowedToShare,targetDir=Non
     # proof images
     for image in images:
         user_is_owner = userIsOwner(conn,userName,image.id)
+        user_is_fulladmin = userIsFullAdmin(conn)
         # share data
         share = allowedToShare or user_is_owner
+        if user_is_fulladmin:
+            share = True
         if share:
             if not targetDir:
                 targetDir= getPath(image,slot)
