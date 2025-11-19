@@ -1237,7 +1237,7 @@ def run_script():
             default=True,
         ),
         namespaces=[omero.constants.namespaces.NSDYNAMIC],
-        version="2.1.1",
+        version="2.1.2",
         authors=["Susanne Kunis", "CellNanOs"],
         institutions=["University of Osnabrueck"],
         contact="sinukesus@gmail.com",
