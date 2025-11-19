@@ -410,7 +410,7 @@ def replace_special_char(name):
     replaced_name = re.sub(NON_VALID_CHAR, '_', name)
     message=None
     if replaced_name!=name:
-        message = "# INFO: replaced char : [%s] -> [%s]"%(name,replaced_name)
+        message = "# WARNING: replaced char : [%s] -> [%s]"%(name,replaced_name)
         setWarning()
     return replaced_name,message
 
@@ -425,7 +425,7 @@ def replace_special_char_in_tokens(name):
 
         # merge tokens
         replaced_name = replaced_name + "/" + token
-    print("INFO: replaced_tokens:\n [%s] -> [%s]"%(name,replaced_name))
+    print("WARNING: replaced_tokens:\n [%s] -> [%s]"%(name,replaced_name))
 
     return replaced_name
 
