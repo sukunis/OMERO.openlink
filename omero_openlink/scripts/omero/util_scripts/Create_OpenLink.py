@@ -612,7 +612,7 @@ def addToNotifyList(user, image_ID):
         print("No mail is given for user %s" % user.getName())
         return
 
-    image_url = "http://omero.cellnanos.uni-osnabrueck.de/webclient/?show=image-" + str(
+    image_url = TYPE_HTTP + "://" + SERVER_NAME + "/webclient/?show=image-" + str(
         image_ID
     )
 
