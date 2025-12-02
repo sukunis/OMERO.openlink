@@ -66,7 +66,7 @@ Nginx configuration
 This section assumes that an you use an nginx server.
 
 **Prerequisites:**
-For the configuration you have to reuse the specified values for `SERVER_NAME` and `OPENLINK_DIR`.
+For the configuration you have to reuse the specified values for `OPENLINK_SERVER_NAME` and `OPENLINK_DIR`.
 Specify the URL under which the data should be accessible:
 
 ::
@@ -101,7 +101,7 @@ Or create a new website for nginx by create a new file (e.g. openlink.conf) in /
 
     server {
         listen 80;
-        server_name SERVER_NAME;  # url alias to this nginx site
+        server_name OPENLINK_SERVER_NAME;  # url alias to this nginx site
 
         location /SUBGROUP {
 
@@ -164,27 +164,21 @@ The script can be uploaded using two alternative workflows, both of which requir
 
 The command will display the absolute path to the directory where the application is installed e.g. ~/<virtualenv_name>/lib/python3.6/site-packages. Go to that directory.
 
+To configure OpenLink, copy `openlink_config.py` from `/config` to your OMERO.server's `side-packages/omero/util` 
+directory (or another location of your choosing, updating the import statement accordingly). 
+Alternatively, you can directly edit the configuration section within `omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py`.
 
-Before uploading please edit the configuration section of omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py.
+**IMPORTANT** The values for `OPENLINK_DIR`, `OPENLINK_SERVER_NAME`, and `TYPE_HTTP` *must* match the corresponding settings in your OMERO.web configuration. 
+Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
 
-*Note* OPENLINK_DIR, SERVER_NAME,TYPE_HTTP should have the same values like specified in the config of OMERO.web. Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
+**Configuration Parameters:**
+* **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Example: `/path/to/open_link_dir`
+* **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Example: `omero-data.myfacility.com`
+* **`TYPE_HTTP`**: The hypertext transfer protocol used (either `http` or `https`).
+* **`SERVER_NAME`**: The URL of the omero-server.
+* **`ADMIN_EMAIL`**: The email adress used as the originator for notifications. Example: `myemail@yourfacilitydomain`
+* **`LENGTH_HASH`**: The length of hash string used in the OpenLink URLs. Longer hashes provide increased security. Example: `12`
 
-::
-
-    # Directory for links that the nginx server also has access to
-    OPENLINK_DIR= "/path/to/open_link_dir"
-
-    # name of nginx website
-    SERVER_NAME = "omero-data.myfacility.com"
-
-    # type of hypertext transfer protocol (http or https)
-    TYPE_HTTP="https"
-
-    # email originator
-    ADMIN_EMAIL = "myemail@yourfacilitydomain"
-
-    # length of hash string used in the openlink url
-    LENGTH_HASH = 12
 
 
 *Option 1:* Connect to the OMERO server and upload the script via the CLI. It is important to be in the correct directory when uploading so that the script is uploaded with the full path: omero/utils_scripts/Create_OpenLink.py:
@@ -224,7 +218,7 @@ open the *urls.py* and delete the leading # in the line
 After restarting the web server, find the debug output for your Openlink plugin by replacing webclient by oemro_openlink/debugoutput in the URL of the omero.web
 (for example: https://server.openmicroscopy.org/webclient -> https://server.openmicroscopy.org/omero_openlink/debugoutput). This output shows you:
 
- * what is defined under OPENLINK_DIR, SERVER_NAME
+ * what is defined under OPENLINK_DIR, SERVER_NAME, OPENLINK_SERVER_NAME
  * check if OPENLINK_DIR is accessible
  * check permission of OPENLINK_DIR for omero-web user
  * overview of OpenLink Areas of currently logged-in user

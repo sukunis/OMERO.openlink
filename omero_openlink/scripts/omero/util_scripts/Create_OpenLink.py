@@ -30,26 +30,30 @@ from email.utils import formatdate
 import json
 import glob
 
+from omero.util import openlink_config
+
 
 # -------------------------------------------------
 # ------------ Configuration ----------------------
 # -------------------------------------------------
 
 # Directory for links that the nginx server also has access to
-OPENLINK_DIR = "/path/to/open_link_dir"
+OPENLINK_DIR = openlink_config.OPENLINK_DIR
 
 # name of nginx website
-SERVER_NAME = "omero-data.myfacility.com"
+OPENLINK_SERVER_NAME = openlink_config.OPENLINK_SERVER_NAME
 
 # type of hypertext transfer protocol (http or https)
-TYPE_HTTP = "https"
+TYPE_HTTP = openlink_config.TYPE_HTTP
 
+# url of omero-server
+SERVER_NAME = openlink_config.SERVER_NAME
 
 # email originator
-ADMIN_EMAIL = "myemail@yourfacilitydomain"
+ADMIN_EMAIL = openlink_config.ADMIN_EMAIL
 
 # length of hash string used in the openlink url
-LENGTH_HASH = 12
+LENGTH_HASH = openlink_config.LENGTH_HASH
 # --------------------------------------------------
 
 
@@ -66,7 +70,8 @@ SMTP_IP = "127.0.0.1"
 
 NGINX_LOCATION = ""  # '/openlink'
 
-URL = "%s://%s%s" % (TYPE_HTTP, SERVER_NAME, NGINX_LOCATION)
+OPENLINK_URL = "%s://%s%s" % (TYPE_HTTP, OPENLINK_SERVER_NAME, NGINX_LOCATION)
+CLIENT_URL = "%s://%s" % (TYPE_HTTP,SERVER_NAME)
 
 OPENLINK_PATTERN = "rn_*_"
 GET_SLOTNAME_PATTERN = r"^rn_[A-Z,0-9]+_\d+_(.+)"
@@ -229,7 +234,7 @@ def addToCurlFile(base, hashName):
                     accessAreaName,
                     os.sep,
                     replace_special_char_in_tokens(relPath),
-                    URL,
+                    OPENLINK_URL,
                     hashName.replace(" ", "%20"),
                     relPath.replace(" ", "%20"),
                 )
@@ -1060,8 +1065,8 @@ def addObjToArea(conn, params, existingAreasNames=None, paths=None):
 
     addToCurlFile(accessAreaPath, hashName)
     writeDictContent(contentFileName)
-    url = "%s/%s/" % (URL, hashName)
-    cmd = CMD % (URL, hashName.replace(" ", "%20"), CURL_FILE)
+    url = "%s/%s/" % (OPENLINK_URL, hashName)
+    cmd = CMD % (OPENLINK_URL, hashName.replace(" ", "%20"), CURL_FILE)
 
     print("\n-----------------------------------------------------\n")
     print("URL: \n%s\n" % url)
@@ -1237,7 +1242,7 @@ def run_script():
             default=True,
         ),
         namespaces=[omero.constants.namespaces.NSDYNAMIC],
-        version="2.1.2",
+        version="2.2.2-alpha",
         authors=["Susanne Kunis", "CellNanOs"],
         institutions=["University of Osnabrueck"],
         contact="sinukesus@gmail.com",
