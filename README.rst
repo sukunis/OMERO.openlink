@@ -173,9 +173,9 @@ Because the script is running on the OMERO.server, there is no way to transfer t
 
 **Configuration Parameters:**
 
-* **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Example: `/path/to/open_link_dir`
-* **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Example: `omero-data.myfacility.com`
-* **`TYPE_HTTP`**: The hypertext transfer protocol used (either `http` or `https`).
+* **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Same as `omero.web.openlink.dir`. Example: `/path/to/open_link_dir`
+* **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Same as `omero.web.openlink.servername`. Example: `omero-data.myfacility.com`
+* **`TYPE_HTTP`**: The hypertext transfer protocol used (either `http` or `https`). Same as `omero.web.openlink.type_http`.
 * **`SERVER_NAME`**: The URL of the omero-server.
 * **`ADMIN_EMAIL`**: The email adress used as the originator for notifications. Example: `myemail@yourfacilitydomain`
 * **`LENGTH_HASH`**: The length of hash string used in the OpenLink URLs. Longer hashes provide increased security. Example: `12`
