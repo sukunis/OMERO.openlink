@@ -172,6 +172,7 @@ Alternatively, you can directly edit the configuration section within `omero_ope
 Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
 
 **Configuration Parameters:**
+
 * **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Example: `/path/to/open_link_dir`
 * **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Example: `omero-data.myfacility.com`
 * **`TYPE_HTTP`**: The hypertext transfer protocol used (either `http` or `https`).
