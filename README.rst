@@ -162,23 +162,23 @@ The script can be uploaded using two alternative workflows, both of which requir
 
     $pip show omero-openlink
 
-The command will display the absolute path to the directory where the application is installed e.g. ~/<virtualenv_name>/lib/python3.6/site-packages. Go to that directory.
+The command will display the absolute path to the directory where the application is installed e.g. ``~/<virtualenv_name>/lib/python3.6/site-packages``. Go to that directory.
 
-To configure OpenLink, copy `openlink_config.py` from `/config` to your OMERO.server's `side-packages/omero/util` 
+To configure OpenLink, copy ``openlink_config.py`` from ``/config`` to your OMERO.server's ``side-packages/omero/util`` 
 directory (or another location of your choosing, updating the import statement accordingly). 
-Alternatively, you can directly edit the configuration section within `omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py`.
+Alternatively, you can directly edit the configuration section within ``omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py``.
 
-**IMPORTANT** The values for `OPENLINK_DIR`, `OPENLINK_SERVER_NAME`, and `TYPE_HTTP` *must* match the corresponding settings in your OMERO.web configuration. 
+**IMPORTANT** The values for ``OPENLINK_DIR``, ``OPENLINK_SERVER_NAME``, and ``TYPE_HTTP`` *must* match the corresponding settings in your OMERO.web configuration. 
 Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
 
 **Configuration Parameters:**
 
-* **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Same as `omero.web.openlink.dir`. Example: `/path/to/open_link_dir`
-* **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Same as `omero.web.openlink.servername`. Example: `omero-data.myfacility.com`
-* **`TYPE_HTTP`**: The hypertext transfer protocol used (either `http` or `https`). Same as `omero.web.openlink.type_http`.
+* **`OPENLINK_DIR`**: The directory where the symbolic links will be created. This directory must be accessible to the nginx server. Same as ``omero.web.openlink.dir``. Example: "/path/to/open_link_dir"
+* **`OPENLINK_SERVER_NAME`**: The name of the nginx website (e.g., the server name defined in your ngingx configuration). Same as ``omero.web.openlink.servername``. Example: "omero-data.myfacility.com"
+* **`TYPE_HTTP`**: The hypertext transfer protocol used (either "http" or "https"). Same as ``omero.web.openlink.type_http``.
 * **`SERVER_NAME`**: The URL of the omero-server.
-* **`ADMIN_EMAIL`**: The email adress used as the originator for notifications. Example: `myemail@yourfacilitydomain`
-* **`LENGTH_HASH`**: The length of hash string used in the OpenLink URLs. Longer hashes provide increased security. Example: `12`
+* **`ADMIN_EMAIL`**: The email adress used as the originator for notifications. Example: "myemail@yourfacilitydomain"
+* **`LENGTH_HASH`**: The length of hash string used in the OpenLink URLs. Longer hashes provide increased security. Example: "12"
 
 
 
