@@ -617,9 +617,7 @@ def addToNotifyList(user, image_ID):
         print("No mail is given for user %s" % user.getName())
         return
 
-    image_url = "http://omero.cellnanos.uni-osnabrueck.de/webclient/?show=image-" + str(
-        image_ID
-    )
+    image_url = "%s/webclient/?show=image-%s" %(CLIENT_URL, str(image_ID))
 
     # Validate with a regular expression. Not perfect but it will do
     match = re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", userEmail)
