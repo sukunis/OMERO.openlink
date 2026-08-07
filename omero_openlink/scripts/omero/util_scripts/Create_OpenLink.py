@@ -44,9 +44,11 @@ SERVER_NAME = "omero-data.myfacility.com"
 # type of hypertext transfer protocol (http or https)
 TYPE_HTTP = "https"
 
-
 # email originator
 ADMIN_EMAIL = "myemail@yourfacilitydomain"
+
+# filename with links to single files
+LINKS_FILE = "links_to_data.txt"
 
 # length of hash string used in the openlink url
 LENGTH_HASH = 12
@@ -197,26 +199,37 @@ def get_file_paths(directory, file_paths):
 
     return file_paths
 
-
 def addToCurlFile(base, hashName):
     """
     Args:
         base: absolute path to openlink area
         hashName: name of openlink area dir
-    """
 
+    This creates:
+      - batch_download.curl (existing behavior)
+      - links_to_data.txt   (one full URL per line for every linked file)
+    """
     curlFile = os.path.join(base, CURL_FILE)
     contentFile = os.path.join(base, CONTENT_FILE)
+    manifestFile = os.path.join(base, LINKS_FILE)
     fileList = get_file_paths(base, [])
     accessAreaName = parseAreaNames(hashName)
+
     try:
-        tFile = open(curlFile, "w")
-        for file in fileList:
-            if os.path.basename(file) == os.path.basename(contentFile):
-                continue
-            if not os.path.basename(file) == os.path.basename(curlFile):
-                relPath = os.path.relpath(file, base)
-                relPath = relPath.replace("\\", "/")
+        # open both files for writing (overwrite existing)
+        with open(curlFile, "w") as tFile, open(manifestFile, "w", encoding="utf-8") as mFile:
+            for file in fileList:
+                # skip the generated files themselves
+                if os.path.basename(file) in (
+                    os.path.basename(contentFile),
+                    os.path.basename(curlFile),
+                    os.path.basename(manifestFile),
+                ):
+                    continue
+
+                # relative path inside the access area, always use forward slashes
+                relPath = os.path.relpath(file, base).replace("\\", "/")
+
                 if len(relPath) > MAX_PATHLENGTH:
                     print(
                         "WARNING: pathlength is in the critical range! This "
@@ -224,7 +237,7 @@ def addToCurlFile(base, hashName):
                     )
                     setWarning()
 
-                # replace whitespaces
+                # write existing curl-format entry (keeps the script's previous behavior)
                 entry = CURL_PATTERN % (
                     accessAreaName,
                     os.sep,
@@ -235,9 +248,19 @@ def addToCurlFile(base, hashName):
                 )
                 tFile.write(entry)
                 tFile.write("\n")
-        tFile.flush()
-    finally:
-        tFile.close()
+
+                # write a single URL line to the links file (URL + area + relative path)
+                file_url = "%s/%s/%s" % (
+                    URL,
+                    hashName.replace(" ", "%20"),
+                    relPath.replace(" ", "%20"),
+                )
+                mFile.write(file_url + "\n")
+            tFile.flush()
+            mFile.flush()
+    except Exception as e:
+        print("# ERROR: creating curl/links files: %s" % e)
+        setError()
 
 
 # get location of sources in managed rep
