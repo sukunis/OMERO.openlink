@@ -169,24 +169,33 @@ The command will display the absolute path to the directory where the applicatio
 
 Before uploading please edit the configuration section of omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py.
 
-*Note* OPENLINK_DIR, SERVER_NAME,TYPE_HTTP should have the same values like specified in the config of OMERO.web. Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
+*Note* OPENLINK_DIR, SERVER_NAME,TYPE_HTTP, NGINX_LOCATION  should have the same values like specified in the config of OMERO.web. Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
 
 ::
 
-    # Directory for links that the nginx server also has access to
-    OPENLINK_DIR= "/path/to/open_link_dir"
-
-    # name of nginx website
+    # Directory for links that the nginx server also has access to as specifed in OMERO web config
+    OPENLINK_DIR = "/path/to/open_link_dir"
+    
+    # name of nginx website as specifed in OMERO web config
     SERVER_NAME = "omero-data.myfacility.com"
-
-    # type of hypertext transfer protocol (http or https)
-    TYPE_HTTP="https"
-
+    
+    # type of hypertext transfer protocol (http or https) as specifed in OMERO web config
+    TYPE_HTTP = "https"
+    
     # email originator
     ADMIN_EMAIL = "myemail@yourfacilitydomain"
-
+    
+    # filename with links to single files
+    LINKS_FILE = "links_to_data.txt"
+    
     # length of hash string used in the openlink url
     LENGTH_HASH = 12
+    
+    # email server IP adress
+    SMTP_IP = "127.0.0.1"
+    
+    # nginx location for openlink data as specifed in OMERO web config
+    NGINX_LOCATION = ""  # '/openlink'
 
 
 *Option 1:* Connect to the OMERO server and upload the script via the CLI. It is important to be in the correct directory when uploading so that the script is uploaded with the full path: omero/utils_scripts/Create_OpenLink.py:
