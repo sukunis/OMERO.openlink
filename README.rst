@@ -57,6 +57,8 @@ Additional configuration settings:
     $omero config set omero.web.openlink.servername 'demo.openmicroscopy.org'
     # http or https
     $omero config set omero.web.openlink.type_http 'https'
+    # nginx location for openlink data, here as example /openlink; would result in the url https://demo.openmicroscopy.org/openlink
+    $omero config set omero.web.openlink.nginx_location '/openlink'
 
 Reload your system and restart the OMERO.web server:
 

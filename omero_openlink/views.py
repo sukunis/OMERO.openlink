@@ -33,6 +33,15 @@ OPENLINK_DIR = openlink_settings.OPENLINK_DIR.rstrip("/")
 TYPE_HTTP = openlink_settings.TYPE_HTTP
 SERVER_NAME = f'{TYPE_HTTP}://{openlink_settings.SERVER_NAME}'.rstrip("/")
 
+# Optional URL prefix for nginx location, e.g. "/openlink"
+_NGINX_LOCATION = getattr(openlink_settings, "NGINX_LOCATION", "")
+_NGINX_LOCATION = (_NGINX_LOCATION or "").strip()
+if _NGINX_LOCATION:
+    if not _NGINX_LOCATION.startswith("/"):
+        _NGINX_LOCATION = f"/{_NGINX_LOCATION}"
+    _NGINX_LOCATION = _NGINX_LOCATION.rstrip("/")
+BASE_URL = f"{SERVER_NAME}{_NGINX_LOCATION}"
+
 
 CMD_CURL = "curl -s %s/%s/%s | curl -K-"
 CONTENT_FILE = "content.json"
@@ -45,7 +54,9 @@ SKIP_FILES = [CONTENT_FILE, CURL_FILE]
 def debugoutput(request, conn=None, **kwargs):
     data = [{
         'OpenLink Dir': OPENLINK_DIR,
-        'Server Name': SERVER_NAME
+        'Server Name': SERVER_NAME,
+        'Nginx Location': _NGINX_LOCATION,
+        'Base URL': BASE_URL
     }]
     # test openlink directory access
     if os.path.exists(OPENLINK_DIR):
@@ -149,9 +160,9 @@ def openlink(request, conn=None, **kwargs):
                     data = {'date': thisDate, 'area': areaName,
                             'timestamp': timestamp,
                             'hashname': os.path.basename(p),
-                            'url': f"{SERVER_NAME}/{os.path.basename(p)}/",
+                            'url': f"{BASE_URL}/{os.path.basename(p)}/",
                             'cmd': CMD_CURL % (
-                                SERVER_NAME,
+                                BASE_URL,
                                 os.path.basename(p).replace(" ", "%20"),
                                 CURL_FILE),
                             'size': filesizeformat(get_area_size(p))
