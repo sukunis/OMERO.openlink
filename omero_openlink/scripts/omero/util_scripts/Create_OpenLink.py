@@ -35,13 +35,13 @@ import glob
 # ------------ Configuration ----------------------
 # -------------------------------------------------
 
-# Directory for links that the nginx server also has access to
+# Directory for links that the nginx server also has access to as specifed in OMERO web config
 OPENLINK_DIR = "/path/to/open_link_dir"
 
-# name of nginx website
+# name of nginx website as specifed in OMERO web config
 SERVER_NAME = "omero-data.myfacility.com"
 
-# type of hypertext transfer protocol (http or https)
+# type of hypertext transfer protocol (http or https) as specifed in OMERO web config
 TYPE_HTTP = "https"
 
 # email originator
@@ -52,6 +52,12 @@ LINKS_FILE = "links_to_data.txt"
 
 # length of hash string used in the openlink url
 LENGTH_HASH = 12
+
+# email server IP adress
+SMTP_IP = "127.0.0.1"
+
+# nginx location for openlink data as specifed in OMERO web config
+NGINX_LOCATION = ""  # '/openlink'
 # --------------------------------------------------
 
 
@@ -63,10 +69,6 @@ PARAM_ADD_TO_SLOT = "Add_to_existing_OpenLink"
 PARAM_SLOT_NAME = "OpenLink_Name"
 PARAM_ATTACH = "Add_attachments"
 
-# email server IP adress
-SMTP_IP = "127.0.0.1"
-
-NGINX_LOCATION = ""  # '/openlink'
 
 URL = "%s://%s%s" % (TYPE_HTTP, SERVER_NAME, NGINX_LOCATION)
 
