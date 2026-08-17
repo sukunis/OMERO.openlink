@@ -3,7 +3,7 @@
 
 
 import os
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 
 # Utility function to read the README file.
@@ -26,7 +26,7 @@ REQUIREMENTS = ["omero-web>=5.6.0"]
 
 
 setup(name="omero-openlink",
-      packages=find_packages(exclude=['ez_setup']),
+      packages=find_namespace_packages(exclude=['ez_setup']),
       version=VERSION,
       description=DESCRIPTION,
       long_description=read('README.rst'),
