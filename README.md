@@ -39,7 +39,8 @@ An OMERO.web plugin that lists the links to generated areas of softlinks via the
 
 <img src="/images/plugin.png?raw=true" width="100%" >  
 
-
+## Installation
+[Installation HowTO](README.rst)
 ## Requirements:
 - OMERO.web 5.6.0 or newer
 - nginx server configurations
