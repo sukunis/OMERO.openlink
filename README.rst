@@ -9,10 +9,33 @@ Main application:
 * Fast web download
 * Data sharing via link
 
-Requirements
+⚙️ Prerequisites & Requirements
 ============
-- OMERO.web 5.6.0 or newer
-- nginx server configurations
+
+Before starting the setup, ensure you meet the following system requirements
+
+- **OMERO.web:** 5.6.0 or newer
+- **Web Server:** A functional Nginx server is required to serve the generated links.
+- **Shared Directory:** You must designate a common directory on the OMERO server (``OPENLINK_DIR``) that is readable and writable by both the omero-server user and the user running OMERO.web.
+
+
+Critical Configuration Variables
+------------------
+
+The following variables must be defined and synchronized across the **OMERO.web configuration**, the **Nginx configuration**, and the **Create_OpenLink.py** script.
+
++----------------+-------+------------------------------------------------------------------------+------------------------+
+| Variable       | Scope | Description                                                            | Example Value          |
++================+=======+========================================================================+========================+
+| OPENLINK_DIR   | All   | The absolute path on the OMERO server where link files will be stored. | /storage/openlink_data |
++----------------+-------+------------------------------------------------------------------------+------------------------+
+| SERVER_NAME    | All   | The external URL alias for the data access (without http://).          | data.myorg.de          |
++----------------+-------+------------------------------------------------------------------------+------------------------+
+| TYPE_HTTP      | All   | Protocol used for external access.                                     | https                  |
++----------------+-------+------------------------------------------------------------------------+------------------------+
+| NGINX_LOCATION | All   | The path segment Nginx uses for the data (e.g., /openlink).            | /openlink              |
++----------------+-------+------------------------------------------------------------------------+------------------------+
+
 
 Installation
 ============
