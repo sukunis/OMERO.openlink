@@ -27,85 +27,67 @@ The following variables must be defined and synchronized across the **OMERO.web 
 +----------------+-------+------------------------------------------------------------------------+------------------------+
 | Variable       | Scope | Description                                                            | Example Value          |
 +================+=======+========================================================================+========================+
-| OPENLINK_DIR   | All   | The absolute path on the OMERO server where link files will be stored. | /storage/openlink_data |
+| OPENLINK_DIR   | All   | The absolute path on the OMERO server where link files will be stored  | /storage/openlink_data |
+|                |       | and the NGINX server has access to. The system user of omero-server    |                        |
+|                |       | requires read and write access, as well omero-web.                     |                        |
 +----------------+-------+------------------------------------------------------------------------+------------------------+
 | SERVER_NAME    | All   | The external URL alias for the data access (without http://).          | data.myorg.de          |
 +----------------+-------+------------------------------------------------------------------------+------------------------+
 | TYPE_HTTP      | All   | Protocol used for external access.                                     | https                  |
 +----------------+-------+------------------------------------------------------------------------+------------------------+
-| NGINX_LOCATION | All   | The path segment Nginx uses for the data (e.g., /openlink).            | /openlink              |
+| NGINX_LOCATION | All   | The path segment Nginx uses for the data (e.g., /openlink)             | /openlink              |
+|                |       | -> would result in the url https://data.myorg.de/openlink              |                        |
 +----------------+-------+------------------------------------------------------------------------+------------------------+
 
 
 Installation
 ============
 
-This section assumes that an OMERO.web is already installed and you will use the nginx server to provide the URL's.
+Step 1: Install the OMERO.web environment
+---------------------------------
 
-Prerequisite
-----------------
-Variable **OPENLINK_DIR**:
-You have to define a directory on your OMERO.server (here */path/to/open_link_dir*), where your nginx server has access. The system user omero-server requires read and write access to this directory for link generation. If you want to use the plugin, omero-web also needs read and write access. Please specify the full path to this directory under OPENLINK_DIR.
+**Note:** Ensure you are executing these commands from the Python virtual environment where OMERO.web is installed. Depending on your install, you may need to call pip with, for example: /path/to_web_venv/venv/bin/pip install ...
 
-Install the app using `pip <https://pip.pypa.io/en/stable/>`_
--------------------------------------------------------------
-NB: You need to ensure that you are running pip from the python environment where omero-web is installed. Depending on your install, you may need to call pip with, for example: /path/to_web_venv/venv/bin/pip install ...
+1. **Install Package via PIP**
 
-::
+   >>> pip install -U omero-openlink
 
-    $pip install -U omero-openlink
+2. **Register the App:** Add the plugin to the list of enabled web applications:
 
+   >>> omero config append omero.web.apps '"omero_openlink"'
 
-Add OpenLink app to your installed web apps:
+3. **Display the Plugin Pane:** Add the OpenLink tab to the right-hand sidebar:
 
-::
+   >>> omero config append omero.web.ui.right_plugins '["OpenLink", "omero_openlink/webclient_plugins/right_plugin.openlink.js.html", "openlink_tab"]'
 
-    $omero config append omero.web.apps '"omero_openlink"'
+4. **Set Configuration Parameters:** Define the global variables using the values established in the Prequisites table::
 
+    # Set the physical directory for links
+    >>> omero config set omero.web.openlink.dir 'OPENLINK_DIR'
+    # Set the base URL alias
+    >>> omero config set omero.web.openlink.servername 'SERVER_NAME'
+    # Set protocol
+    >>> omero config set omero.web.openlink.type_http 'TYPE_HTTP'
+    # Set the NGINX path segment 
+    >>> omero config set omero.web.openlink.nginx_location 'NGINX_LOCATION'
 
-Display the OpenLink pane in the right pane
+5. **Restart:** Reload your entire system and restart the OMERO.web server to load the plugin.
 
-::
-
-    $omero config append omero.web.ui.right_plugins '["OpenLink", "omero_openlink/webclient_plugins/right_plugin.openlink.js.html", "openlink_tab"]'
-
-
-Additional configuration settings:
-
-::
-
-    # path of prepared OPENLINK_DIR, here as eaxmple */storage/openlink*
-    $omero config set omero.web.openlink.dir '/storage/openlink'
-    # set the url alias of your OMERO.web server without leading http://. Here as example we use the address of the openmicroscopy demo server
-    $omero config set omero.web.openlink.servername 'demo.openmicroscopy.org'
-    # http or https
-    $omero config set omero.web.openlink.type_http 'https'
-    # nginx location for openlink data, here as example /openlink; would result in the url https://demo.openmicroscopy.org/openlink
-    $omero config set omero.web.openlink.nginx_location '/openlink'
-
-Reload your system and restart the OMERO.web server:
-
-Nginx configuration
+Step 2: Configure External Access (Nginx)
 -------------------
 
-This section assumes that an you use an nginx server.
+This step configures Nginx to correctly proxy and serve the link files from the directory defined in ``OPENLINK_DIR``.
 
-**Prerequisites:**
-For the configuration you have to reuse the specified values for `SERVER_NAME` and `OPENLINK_DIR`.
-Specify the URL under which the data should be accessible:
+**Note:** You must use the exact ``SERVER_NAME`` and ``OPENLINK_DIR`` defined in the Prerequisites section.
 
-::
+Choose **ONE** configuration option based on your Nginx setup:
 
-    SERVERNAME/SUBGROUP # this could be data.myorg.de/openlink
+Option A: Adding a Location Block (Recommended for existing setups)
+```````````````````````````
 
-You can configure your nginx in two way's:
+Add a new location to your nginx configuration file (``/etc/nginx/conf.d/omeroweb.conf``) like::
 
-*Option 1:*
-Add a new location to your nginx configuration file (etc/nginx/conf.d/omeroweb.conf) like:
-
-::
-
-    location  /SUBGROUP {
+   location  NGINX_LOCATION {
             proxy_read_timeout 36000;  # 10 hours
             limit_rate 10000M;  # 10 GByte
             gzip on;
@@ -118,18 +100,18 @@ Add a new location to your nginx configuration file (etc/nginx/conf.d/omeroweb.c
             alias OPENLINK_DIR;  # the links will be created here
     }
 
+Your data will be accessible under SERVERNAME/NGINX_LOCATION (Example: data.myorg.de/openlink).
 
-*Option 2:*
-Or create a new website for nginx by create a new file (e.g. openlink.conf) in /etc/nginx/conf.d/ with:
+Option B: Creating a Dedicated Server Block
+````````````````````````````
 
-::
+Create a new website for Nginx by create a new configuration file (e.g. ``openlink.conf``) in ``/etc/nginx/conf.d``::
 
     server {
         listen 80;
         server_name SERVER_NAME;  # url alias to this nginx site
 
-        location /SUBGROUP {
-
+        location NGINX_LOCATION {
             proxy_read_timeout 36000;  # 10 hours
             limit_rate 10000M;  # 10 GByte
             gzip on;
@@ -143,20 +125,21 @@ Or create a new website for nginx by create a new file (e.g. openlink.conf) in /
         }
     }
 
-*Note:* To use a special style (like the example in *scripts/nginx/autoIndexStyle.xslt*) for your openlink data representation,
-please copy the style file to */etc/nginx* and use the following configuration:
+**Note:** 
 
-::
+To use a special style (like the example in ``scripts/nginx/autoIndexStyle.xslt``) for your openlink data representation,
+please copy the style file to ``/etc/nginx`` and use the following configuration:::
 
     autoindex_format  xml;
     xslt_stylesheet /etc/nginx/autoindexStyle.xslt       path="$uri" schema="$scheme" host="$host";
 
 
-If a user navigates to a URL that corresponds to a directory on the server, NGINX looks for an index file to serve. By default, this is usually *index.html*. If this file is present, NGINX will serve its contents instead of displaying a directory listing. It is recommendet to put such a *index.html* in the **OPENLINK_DIR** to avoid the listing of all created openlink data.
+**Security Recommendation**:
 
-Example for *index.html*
+To prevent directory listing when a user navigates to the base URL, create a simple ``index.html`` file in ``OPENLINK_DIR`` instructing users to use the OMERO system to generate links.
 
-::
+
+Example for ``index.html``::
 
     <!DOCTYPE html>
     <html lang="de">
@@ -175,26 +158,17 @@ Example for *index.html*
 
 
 
-Enable openlink creation
+Step 3: Generating Data Links on the OMERO.server (Server side)
 ---------------------------
-This section assumes that an OMERO.server is already installed.
 
-Openlink can be created using a script that runs on the OMERO.server. This script needs to be uploaded to the OMERO.server and its dependencies installed in the OMERO.server virtual environment.
+This step uses the a OMERO.script (python) on the server to create the links associated with your data.
+This script needs to be uploaded to the OMERO.server and its dependencies installed in the OMERO.server virtual environment.
 
-The script can be uploaded using two alternative workflows, both of which require you to have the correct admin privileges. To find where OMERO.openlink has been installed using pip, run:
+**Note:**
+Update all variables in the configuration section of ``Create_Openlink.py`` to match the Nginx/Web settings listed in the Prerequisites table before upload. Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
 
-::
+Example configuration section ``Create_Openlink.py``::
 
-    $pip show omero-openlink
-
-The command will display the absolute path to the directory where the application is installed e.g. ~/<virtualenv_name>/lib/python3.6/site-packages. Go to that directory.
-
-
-Before uploading please edit the configuration section of omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py.
-
-*Note* OPENLINK_DIR, SERVER_NAME,TYPE_HTTP, NGINX_LOCATION  should have the same values like specified in the config of OMERO.web. Because the script is running on the OMERO.server, there is no way to transfer the config parameters automatically.
-
-::
 
     # Directory for links that the nginx server also has access to as specifed in OMERO web config
     OPENLINK_DIR = "/path/to/open_link_dir"
@@ -220,18 +194,34 @@ Before uploading please edit the configuration section of omero_openlink/scripts
     # nginx location for openlink data as specifed in OMERO web config
     NGINX_LOCATION = ""  # '/openlink'
 
+**Deployment Options (Choose ONE):**
 
-*Option 1:* Connect to the OMERO server and upload the script via the CLI. It is important to be in the correct directory when uploading so that the script is uploaded with the full path: omero/utils_scripts/Create_OpenLink.py:
+Option 1: CLI Upload (Recommended)
+``````````````
 
-::
+1. Locate the script installation path using
 
-    $cd omero_openlink/scripts
-    $omero script upload omero/util_scripts/Create_OpenLink.py --official
+   >>> pip show omero-openlink
+
+2. Navigate to the script directory, edit configuration and upload
+
+   >>> cd SCRIPT_INSTALL_PATH/scripts/omero_openlink/scripts/omero/util_scripts/
+   # edit Create_OpenLink.py
+   # to upload to section omero/util_scripts use:
+   >>> omero script upload omero/util_scripts/Create_OpenLink.py --official 
 
 
-*Option 2:* Alternatively, before starting the OMERO.server, copy the script from the figure install /omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py to the OMERO.server path/to/OMERO.server/lib/scripts/omero/util_scripts. Then restart the OMERO.server.
 
-*Option 3:* Upload the script through the OMERO web interface: For this, log into your OMERO web interface as admin, select the scripts icon and click on the "Upload Script" button. Select the Create_OpenLink.py script from the directory where you copied it to locally and upload it into the directory omero/util_scripts.
+Option 2: Direct File Copy
+``````````````
+
+Alternatively, before starting the OMERO.server, copy the script from the figure install /omero_openlink/scripts/omero/util_scripts/Create_OpenLink.py to the OMERO.server path/to/OMERO.server/lib/scripts/omero/util_scripts. Then restart the OMERO.server.
+
+
+Option 3: Web Interface Upload
+````````````````
+
+Upload the script through the OMERO web interface: For this, log into your OMERO web interface as admin, select the scripts icon and use the "Upload Script" buttonto place the script in the correct directory structure (``omero/util_scripts/``).
 
 
 Validation
